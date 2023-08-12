@@ -1,0 +1,48 @@
+﻿@page "/Subjects"
+@inject ISubjectService SubjectService
+
+<PageTitle>Subject</PageTitle>
+
+<h3>Subjects</h3>
+
+<RadzenCard>
+    <div class="d-flex justify-content-end py-2">
+        <RadzenButton Click=@(args => CreateSubject(args)) Icon="add_circle_outline" Text="Add Subject" ButtonStyle="ButtonStyle.Primary" />
+    </div>
+
+    <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true"
+                    PageSize="20" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                    Data="@subjects" TItem="SubjectDto" ColumnWidth="300px"
+                    LogicalFilterOperator="LogicalFilterOperator.Or" IsLoading="@isLoading" LoadData="Load" Count="@count">
+        <Columns>
+            <RadzenDataGridColumn TItem="SubjectDto" Property="Name" Title="Code" Frozen="true" Width="100px" TextAlign="TextAlign.Center" />
+            <RadzenDataGridColumn TItem="SubjectDto" Property="Description" Title="Description" />
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+
+@code {
+    IEnumerable<SubjectDto> subjects;
+    bool isLoading = false;
+    int count;
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+    }
+
+    void Load(LoadDataArgs args)
+    {
+        isLoading = true;
+
+        subjects = SubjectService.GetSubjects(args, out count);
+
+        isLoading = false;
+    }
+
+    private void CreateSubject(MouseEventArgs e)
+    {
+        
+    }
+}
