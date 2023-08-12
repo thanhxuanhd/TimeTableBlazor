@@ -56,7 +56,7 @@ public class ImportExportService : IImportExportService
 
     private int ImportStudent(string fileData)
     {
-        List<StudentImportDto> studentDtos = new List<StudentImportDto>();
+        var studentDtos = new List<StudentImportDto>();
 
         using var stringReader = new StringReader(fileData);
         using var csv = new CsvReader(stringReader, CultureInfo.InvariantCulture);
@@ -155,7 +155,7 @@ public class ImportExportService : IImportExportService
 
     private int ImportSubject(string fileData)
     {
-        List<SubjectImportDto> subjectDtos = new List<SubjectImportDto>();
+        var subjectDtos = new List<SubjectImportDto>();
 
         using var stringReader = new StringReader(fileData);
         using var csv = new CsvReader(stringReader, CultureInfo.InvariantCulture);
