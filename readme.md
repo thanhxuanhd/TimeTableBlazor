@@ -1,4 +1,4 @@
-The project support timetable for small school implement by Blazor, SQLite.
+The project support timetable for small school implement by Blazor Server, SQLite, [radzen](https://blazor.radzen.com/),
 
 
 How to run the project.
