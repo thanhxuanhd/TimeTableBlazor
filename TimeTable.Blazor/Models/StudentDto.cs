@@ -25,10 +25,3 @@ public class StudentImportDto
     [EmailAddress]
     public string Email { get; set; }
 }
-
-public class Appointment
-{
-    public DateTime Start { get; set; }
-    public DateTime End { get; set; }
-    public string Text { get; set; }
-}

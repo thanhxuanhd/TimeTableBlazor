@@ -17,6 +17,11 @@ public class Teacher : BaseEntity<Guid>
     [EmailAddress]
     public string Email { get; set; }
 
+    public string GetFullName()
+    {
+        return $"{FirstName} {LastName}";
+    }
+
     public virtual ICollection<Subject> Subjects { get; set; }
 
     public virtual ICollection<Student> Students { get; set; }

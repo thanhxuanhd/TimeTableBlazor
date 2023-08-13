@@ -22,7 +22,7 @@ public class ImportExportService : IImportExportService
     {
         var templates = _options.Value;
 
-        return templates;
+        return templates.OrderBy(x => x.Type).ToList();
     }
 
     public int ImportData(string type, string fileData)
@@ -44,7 +44,12 @@ public class ImportExportService : IImportExportService
                 importCount = ImportSubject(fileData);
                 break;
 
+            case TemplateType.Room:
+                importCount = ImportRoom(fileData);
+                break;
+
             case TemplateType.TimeTable:
+                importCount = ImportTimetable(fileData);
                 break;
 
             default:
@@ -58,16 +63,7 @@ public class ImportExportService : IImportExportService
     {
         var studentDtos = new List<StudentImportDto>();
 
-        using var stringReader = new StringReader(fileData);
-        using var csv = new CsvReader(stringReader, CultureInfo.InvariantCulture);
-        csv.Read();
-        csv.ReadHeader();
-        while (csv.Read())
-        {
-            var student = csv.GetRecord<StudentImportDto>();
-
-            studentDtos.Add(student);
-        }
+        studentDtos = GetDataFromCsv<StudentImportDto>(fileData);
 
         // TODO Validation Student
 
@@ -108,16 +104,7 @@ public class ImportExportService : IImportExportService
     {
         var teacherDtos = new List<TeacherImportDto>();
 
-        using var stringReader = new StringReader(fileData);
-        using var csv = new CsvReader(stringReader, CultureInfo.InvariantCulture);
-        csv.Read();
-        csv.ReadHeader();
-        while (csv.Read())
-        {
-            var teacher = csv.GetRecord<TeacherImportDto>();
-
-            teacherDtos.Add(teacher);
-        }
+        teacherDtos = GetDataFromCsv<TeacherImportDto>(fileData);
 
         // TODO Validation Teacher
 
@@ -157,16 +144,7 @@ public class ImportExportService : IImportExportService
     {
         var subjectDtos = new List<SubjectImportDto>();
 
-        using var stringReader = new StringReader(fileData);
-        using var csv = new CsvReader(stringReader, CultureInfo.InvariantCulture);
-        csv.Read();
-        csv.ReadHeader();
-        while (csv.Read())
-        {
-            var subject = csv.GetRecord<SubjectImportDto>();
-
-            subjectDtos.Add(subject);
-        }
+        subjectDtos = GetDataFromCsv<SubjectImportDto>(fileData);
 
         // TODO Validation Teacher
 
@@ -203,5 +181,120 @@ public class ImportExportService : IImportExportService
         }
 
         return subjects.Count();
+    }
+
+    private int ImportRoom(string fileData)
+    {
+        var roomDtos = new List<RoomImportDto>();
+
+        roomDtos = GetDataFromCsv<RoomImportDto>(fileData);
+
+        var roomCodes = roomDtos.Select(r => r.Code).ToList();
+        var exsitingRooms = _context.Rooms.Where(r => roomCodes.Contains(r.Code)).ToList();
+
+        if (exsitingRooms.Any())
+        {
+            foreach (Room room in exsitingRooms)
+            {
+                RoomImportDto roomDto = roomDtos.FirstOrDefault(s => s.Code.Equals(room.Code, StringComparison.OrdinalIgnoreCase));
+                if (roomDto is not null)
+                {
+                    roomDtos.Remove(roomDto);
+                }
+            }
+        }
+
+        var rooms = roomDtos.Select(s => new Room()
+        {
+            Id = Guid.NewGuid(),
+            Code = s.Code,
+            Location = s.Location
+        });
+
+        if (rooms.Any())
+        {
+            _context.AddRange(rooms);
+            _context.SaveChanges();
+        }
+
+        return rooms.Count();
+    }
+
+    private int ImportTimetable(string fileData)
+    {
+        var timetableDtos = new List<TimetableImportDto>();
+
+        timetableDtos = GetDataFromCsv<TimetableImportDto>(fileData);
+
+        var roomCodes = timetableDtos.Select(t => t.RoomCode).ToList();
+        var subjectCodes = timetableDtos.Select(t => t.SubjectCode).Distinct().ToList();
+
+        var rooms = _context.Rooms.Where(r => roomCodes.Contains(r.Code)).ToList();
+        var subjects = _context.Subjects.Where(s => subjectCodes.Contains(s.Code)).ToList();
+
+        var timetables = timetableDtos.GroupBy(t => t.SubjectCode);
+
+        // TODO Validation
+
+        var sessionDtos = new List<SessionImportDto>();
+        foreach (var timetable in timetables)
+        {
+            var sessionData = timetable.Select(t => new SessionImportDto()
+            {
+                Id = Guid.NewGuid(),
+                Name = t.SessionName,
+                Description = t.SessionDescription,
+                RoomId = rooms.FirstOrDefault(r => r.Code == t.RoomCode)?.Id ?? Guid.Empty,
+                SubjectId = subjects.FirstOrDefault(s => s.Code == t.SubjectCode)?.Id ?? Guid.Empty,
+                StartTime = t.StartTime,
+                EndTime = t.EndTime,
+                TimeSlotId = Guid.NewGuid()
+            });
+
+            sessionDtos.AddRange(sessionData);
+        }
+
+        var sessions = sessionDtos.Select(s => new Session()
+        {
+            Id = s.Id,
+            Name = s.Name,
+            Description = s.Description,
+            RoomId = s.RoomId,
+            SubjectId = s.SubjectId,
+            TimeSlotId = s.TimeSlotId,
+            Timeslot = new Timeslot()
+            {
+                SessionId = s.Id,
+                Id = s.TimeSlotId,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime
+            }
+        });
+
+        if (sessions.Any())
+        {
+            _context.AddRange(sessions);
+            _context.SaveChanges();
+        }
+
+        return sessions.Count();
+    }
+
+    private static List<T> GetDataFromCsv<T>(string fileData)
+    {
+        var datas = new List<T>();
+
+        using var stringReader = new StringReader(fileData);
+        using var csv = new CsvReader(stringReader, CultureInfo.InvariantCulture);
+        csv.Read();
+        csv.ReadHeader();
+        while (csv.Read())
+        {
+            var row = csv.GetRecord<T>();
+
+            datas.Add(row);
+        }
+
+        return datas;
     }
 }

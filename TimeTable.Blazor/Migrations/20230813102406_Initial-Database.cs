@@ -16,7 +16,7 @@ namespace TimeTable.Blazor.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: true),
+                    Code = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
                     Location = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
@@ -52,6 +52,20 @@ namespace TimeTable.Blazor.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Teachers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Timeslots",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    StartTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    EndTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    SessionId = table.Column<Guid>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Timeslots", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -114,8 +128,8 @@ namespace TimeTable.Blazor.Migrations
                     Name = table.Column<string>(type: "TEXT", nullable: true),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     TimeSlotId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    RoomId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    SubjectId = table.Column<Guid>(type: "TEXT", nullable: true)
+                    SubjectId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    RoomId = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -130,6 +144,12 @@ namespace TimeTable.Blazor.Migrations
                         name: "FK_Sessions_Subjects_SubjectId",
                         column: x => x.SubjectId,
                         principalTable: "Subjects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Sessions_Timeslots_TimeSlotId",
+                        column: x => x.TimeSlotId,
+                        principalTable: "Timeslots",
                         principalColumn: "Id");
                 });
 
@@ -157,25 +177,6 @@ namespace TimeTable.Blazor.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Timeslots",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    StartTime = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    EndTime = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    SessionId = table.Column<Guid>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Timeslots", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Timeslots_Sessions_SessionId",
-                        column: x => x.SessionId,
-                        principalTable: "Sessions",
-                        principalColumn: "Id");
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Sessions_RoomId",
                 table: "Sessions",
@@ -185,6 +186,12 @@ namespace TimeTable.Blazor.Migrations
                 name: "IX_Sessions_SubjectId",
                 table: "Sessions",
                 column: "SubjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sessions_TimeSlotId",
+                table: "Sessions",
+                column: "TimeSlotId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_StudentSubject_SubjectsId",
@@ -210,17 +217,14 @@ namespace TimeTable.Blazor.Migrations
                 name: "IX_Subjects_TeacherId",
                 table: "Subjects",
                 column: "TeacherId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Timeslots_SessionId",
-                table: "Timeslots",
-                column: "SessionId",
-                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Sessions");
+
             migrationBuilder.DropTable(
                 name: "StudentSubject");
 
@@ -231,13 +235,10 @@ namespace TimeTable.Blazor.Migrations
                 name: "Timeslots");
 
             migrationBuilder.DropTable(
-                name: "Students");
-
-            migrationBuilder.DropTable(
-                name: "Sessions");
-
-            migrationBuilder.DropTable(
                 name: "Subjects");
+
+            migrationBuilder.DropTable(
+                name: "Students");
 
             migrationBuilder.DropTable(
                 name: "Rooms");

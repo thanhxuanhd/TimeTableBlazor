@@ -29,7 +29,9 @@ namespace TimeTable.Blazor
             builder.Services.AddScoped<IImportExportService, ImportExportService>();
             builder.Services.AddScoped<ITeacherService, TeacherService>();
             builder.Services.AddScoped<ISubjectService, SubjectService>();
+            builder.Services.AddScoped<IRoomService, RoomService>();
             builder.Services.AddScoped<INotifyService, NotifyService>();
+            builder.Services.AddScoped<ITimetableService, TimetableService>();
 
             builder.Services.Configure<List<ImportTemplate>>(builder.Configuration.GetSection("ImportTemplates"));
 

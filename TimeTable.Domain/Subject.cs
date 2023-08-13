@@ -17,7 +17,7 @@ public class Subject : BaseEntity<Guid>
 
     public virtual Teacher Teacher { get; set; }
 
-    public virtual List<Student> Students { get; set; }
+    public virtual ICollection<Student> Students { get; set; }
 
-    public virtual List<Session> Sessions { get; set; }
+    public virtual ICollection<Session> Sessions { get; set; }
 }

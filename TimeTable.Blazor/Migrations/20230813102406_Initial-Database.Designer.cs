@@ -11,7 +11,7 @@ using TimeTable.Domain;
 namespace TimeTable.Blazor.Migrations
 {
     [DbContext(typeof(TimeTableDbContext))]
-    [Migration("20230812161806_InitialDatabase")]
+    [Migration("20230813102406_Initial-Database")]
     partial class InitialDatabase
     {
         /// <inheritdoc />
@@ -41,10 +41,12 @@ namespace TimeTable.Blazor.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Location")
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Location")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -67,7 +69,7 @@ namespace TimeTable.Blazor.Migrations
                     b.Property<Guid>("RoomId")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("SubjectId")
+                    b.Property<Guid>("SubjectId")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid?>("TimeSlotId")
@@ -78,6 +80,9 @@ namespace TimeTable.Blazor.Migrations
                     b.HasIndex("RoomId");
 
                     b.HasIndex("SubjectId");
+
+                    b.HasIndex("TimeSlotId")
+                        .IsUnique();
 
                     b.ToTable("Sessions");
                 });
@@ -206,9 +211,6 @@ namespace TimeTable.Blazor.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SessionId")
-                        .IsUnique();
-
                     b.ToTable("Timeslots");
                 });
 
@@ -235,11 +237,21 @@ namespace TimeTable.Blazor.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TimeTable.Domain.Subject", null)
+                    b.HasOne("TimeTable.Domain.Subject", "Subject")
                         .WithMany("Sessions")
-                        .HasForeignKey("SubjectId");
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TimeTable.Domain.Timeslot", "Timeslot")
+                        .WithOne("Session")
+                        .HasForeignKey("TimeTable.Domain.Session", "TimeSlotId");
 
                     b.Navigation("Room");
+
+                    b.Navigation("Subject");
+
+                    b.Navigation("Timeslot");
                 });
 
             modelBuilder.Entity("TimeTable.Domain.StudentTeacher", b =>
@@ -272,23 +284,9 @@ namespace TimeTable.Blazor.Migrations
                     b.Navigation("Teacher");
                 });
 
-            modelBuilder.Entity("TimeTable.Domain.Timeslot", b =>
-                {
-                    b.HasOne("TimeTable.Domain.Session", "Session")
-                        .WithOne("Timeslot")
-                        .HasForeignKey("TimeTable.Domain.Timeslot", "SessionId");
-
-                    b.Navigation("Session");
-                });
-
             modelBuilder.Entity("TimeTable.Domain.Room", b =>
                 {
                     b.Navigation("Subjects");
-                });
-
-            modelBuilder.Entity("TimeTable.Domain.Session", b =>
-                {
-                    b.Navigation("Timeslot");
                 });
 
             modelBuilder.Entity("TimeTable.Domain.Subject", b =>
@@ -299,6 +297,11 @@ namespace TimeTable.Blazor.Migrations
             modelBuilder.Entity("TimeTable.Domain.Teacher", b =>
                 {
                     b.Navigation("Subjects");
+                });
+
+            modelBuilder.Entity("TimeTable.Domain.Timeslot", b =>
+                {
+                    b.Navigation("Session");
                 });
 #pragma warning restore 612, 618
         }

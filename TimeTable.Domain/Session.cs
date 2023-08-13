@@ -8,12 +8,13 @@ public class Session : BaseEntity<Guid>
 
     public Guid? TimeSlotId { get; set; }
 
+    public Guid SubjectId { get; set; }
+
     public Guid RoomId { get; set; }
 
-    public virtual Room Room
-    {
-        get; set;
-    }
+    public virtual Room Room { get; set; }
 
     public virtual Timeslot Timeslot { get; set; }
+
+    public virtual Subject Subject { get; set; }
 }

@@ -12,5 +12,6 @@ public enum TemplateType
     Student,
     Teacher,
     Subject,
-    TimeTable
+    TimeTable,
+    Room
 }

@@ -1,13 +1,15 @@
 ﻿@page "/"
 @using TimeTable.Blazor.Models;
 @inject DialogService DialogService
+@inject ITimetableService TimetableService
+@inject INotifyService NotifyService
 
 
 <PageTitle>Time Table</PageTitle>
 
 @inject DialogService DialogService
 <RadzenCard>
-    <RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender style="height: 768px;" TItem="Appointment" Data=@appointments StartProperty="Start" EndProperty="End"
+    <RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender style="height: 768px;" TItem="Appointment" Data=@appointments StartProperty="StartDate" EndProperty="EndDate"
                      TextProperty="Text" SelectedIndex="2"
                      SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender>
         <RadzenDayView />
@@ -21,12 +23,25 @@
 
 @code {
     RadzenScheduler<Appointment> scheduler;
-    //EventConsole console;
-    Dictionary<DateTime, string> events = new Dictionary<DateTime, string>();
+    IList<Appointment> appointments;
+    DateTime limitedRange;
 
-    IList<Appointment> appointments = new List<Appointment>
+    protected override void OnInitialized()
     {
-    };
+        base.OnInitialized();
+
+        appointments = new List<Appointment>();
+        limitedRange = DateTime.Now.AddDays(-30);
+        try
+        {
+            appointments = TimetableService.GetAppointments(limitedRange);
+
+        }
+        catch (Exception ex)
+        {
+            NotifyService.Error(ex.Message);
+        }
+    }
 
     void OnSlotRender(SchedulerSlotRenderEventArgs args)
     {
@@ -45,7 +60,6 @@
 
     async Task OnSlotSelect(SchedulerSlotSelectEventArgs args)
     {
-
         if (args.View.Text != "Year")
         {
         }

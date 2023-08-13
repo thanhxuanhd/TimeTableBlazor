@@ -21,14 +21,15 @@ public class TimeTableDbContext : DbContext
         modelBuilder.Entity<Room>().HasMany(x => x.Subjects);
 
         modelBuilder.Entity<Subject>().HasKey(x => x.Id);
-        modelBuilder.Entity<Subject>().HasMany(x => x.Sessions);
         modelBuilder.Entity<Subject>().HasMany(x => x.Students);
+        modelBuilder.Entity<Subject>().HasMany(x => x.Sessions);
 
         modelBuilder.Entity<Session>().HasKey(x => x.Id);
-        modelBuilder.Entity<Session>().HasOne(x => x.Timeslot);
+        modelBuilder.Entity<Session>().HasOne(x => x.Timeslot).WithOne(x => x.Session).HasForeignKey<Session>(x => x.TimeSlotId);
+        modelBuilder.Entity<Session>().HasOne(x => x.Subject).WithMany(x => x.Sessions).HasForeignKey(x => x.SubjectId);
 
         modelBuilder.Entity<Timeslot>().HasKey(x => x.Id);
-        modelBuilder.Entity<Timeslot>().HasOne(x => x.Session).WithOne(x => x.Timeslot).HasForeignKey<Timeslot>(x => x.SessionId);
+        modelBuilder.Entity<Timeslot>().HasOne(x => x.Session).WithOne(x => x.Timeslot);
     }
 
     public DbSet<Student> Students { get; set; }

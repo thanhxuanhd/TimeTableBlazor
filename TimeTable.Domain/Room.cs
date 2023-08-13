@@ -1,8 +1,12 @@
-﻿namespace TimeTable.Domain;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace TimeTable.Domain;
 
 public class Room : BaseEntity<Guid>
 {
-    public string Name { get; set; }
+    [Required]
+    [MaxLength(20)]
+    public string Code { get; set; }
 
     public string Location { get; set; }
 
