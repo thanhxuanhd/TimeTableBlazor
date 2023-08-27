@@ -4,7 +4,7 @@ namespace TimeTable.Blazor.Models;
 
 public class StudentDto
 {
-    public Guid Id { get; set; }
+    public Guid? Id { get; set; }
 
     public string Code { get; set; }
     public string FirstName { get; set; }

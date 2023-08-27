@@ -1,4 +1,5 @@
 ﻿using CsvHelper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Globalization;
 using TimeTable.Blazor.Interfaces;
@@ -11,11 +12,13 @@ public class ImportExportService : IImportExportService
 {
     private readonly IOptions<List<ImportTemplate>> _options;
     private readonly TimeTableDbContext _context;
+    private readonly ILogger _logger;
 
-    public ImportExportService(IOptions<List<ImportTemplate>> options, TimeTableDbContext context)
+    public ImportExportService(IOptions<List<ImportTemplate>> options, TimeTableDbContext context, ILogger<ImportExportService> logger)
     {
         _options = options;
         _context = context;
+        _logger = logger;
     }
 
     public List<ImportTemplate> GetImportTemplates()
@@ -65,8 +68,6 @@ public class ImportExportService : IImportExportService
 
         studentDtos = GetDataFromCsv<StudentImportDto>(fileData);
 
-        // TODO Validation Student
-
         var studentCodes = studentDtos.Select(s => s.Code).ToList();
         var existingStudent = _context.Students.Where(x => studentCodes.Contains(x.Code)).ToList();
 
@@ -77,6 +78,8 @@ public class ImportExportService : IImportExportService
                 var studentDto = studentDtos.FirstOrDefault(s => s.Code.Equals(student.Code, StringComparison.OrdinalIgnoreCase));
                 if (studentDto is not null)
                 {
+                    string message = $"Duplicate Student: {studentDto.Code}";
+                    _logger.LogWarning(message);
                     studentDtos.Remove(studentDto);
                 }
             }
@@ -106,8 +109,6 @@ public class ImportExportService : IImportExportService
 
         teacherDtos = GetDataFromCsv<TeacherImportDto>(fileData);
 
-        // TODO Validation Teacher
-
         var teacherCodes = teacherDtos.Select(s => s.Code).ToList();
         var existingTeacher = _context.Teachers.Where(x => teacherCodes.Contains(x.Code)).ToList();
 
@@ -118,6 +119,8 @@ public class ImportExportService : IImportExportService
                 var teacherDto = teacherDtos.FirstOrDefault(s => s.Code.Equals(teacher.Code, StringComparison.OrdinalIgnoreCase));
                 if (teacherDto is not null)
                 {
+                    string message = $"Duplicate Teacher: {teacherDto.Code}";
+                    _logger.LogWarning(message);
                     teacherDtos.Remove(teacherDto);
                 }
             }
@@ -160,6 +163,8 @@ public class ImportExportService : IImportExportService
                 var subjectDto = subjectDtos.FirstOrDefault(s => s.Code.Equals(subject.Code, StringComparison.OrdinalIgnoreCase));
                 if (subjectDto is not null)
                 {
+                    string message = $"Duplicate Subject: {subjectDto.Code}";
+                    _logger.LogWarning(message);
                     subjectDtos.Remove(subjectDto);
                 }
             }
@@ -199,6 +204,8 @@ public class ImportExportService : IImportExportService
                 RoomImportDto roomDto = roomDtos.FirstOrDefault(s => s.Code.Equals(room.Code, StringComparison.OrdinalIgnoreCase));
                 if (roomDto is not null)
                 {
+                    string message = $"Duplicate Room: {roomDto.Code}";
+                    _logger.LogWarning(message);
                     roomDtos.Remove(roomDto);
                 }
             }
@@ -254,7 +261,7 @@ public class ImportExportService : IImportExportService
             sessionDtos.AddRange(sessionData);
         }
 
-        var sessions = sessionDtos.Select(s => new Session()
+        var sessions = sessionDtos.Where(s => s.RoomId != Guid.Empty && s.SubjectId != Guid.Empty).Select(s => new Session()
         {
             Id = s.Id,
             Name = s.Name,
@@ -269,7 +276,9 @@ public class ImportExportService : IImportExportService
                 StartTime = s.StartTime,
                 EndTime = s.EndTime
             }
-        });
+        }).ToList();
+
+        ValidationTimeTable(sessions);
 
         if (sessions.Any())
         {
@@ -277,7 +286,51 @@ public class ImportExportService : IImportExportService
             _context.SaveChanges();
         }
 
-        return sessions.Count();
+        return sessions.Count;
+    }
+
+    private void ValidationTimeTable(List<Session> sessions)
+    {
+
+        var subjectIds = sessions.Select(s => s.SubjectId).ToList();
+        var existingTimeTables = _context.Sessions
+            .Include(s => s.Timeslot)
+            .Where(s => subjectIds.Contains(s.SubjectId)).ToList();
+
+        if (!existingTimeTables.Any())
+        {
+            return;
+        }
+
+        foreach (var session in sessions)
+        {
+            var exisitingSessions = existingTimeTables
+                .Where(c => c.RoomId == session.RoomId && c.SubjectId == session.SubjectId);
+
+            if (!exisitingSessions.Any())
+            {
+                continue;
+            }
+
+            foreach (var exisitingSession in exisitingSessions)
+            {
+                string message = string.Empty;
+                if (session.Timeslot is null && exisitingSession.Timeslot is null)
+                {
+                    message = $"Timeslot is null: {session.Name}";
+                    _logger.LogWarning(message);
+                    continue;
+                }
+
+                if ((session.Timeslot.StartTime == exisitingSession.Timeslot.StartTime && session.Timeslot.EndTime == exisitingSession.Timeslot.EndTime)
+                    || (session.Timeslot.StartTime <= exisitingSession.Timeslot.EndTime && session.Timeslot.EndTime >= exisitingSession.Timeslot.StartTime))
+                {
+                    message = $"Duplicate Session Or Overlaps: {session.Name}";
+                    _logger.LogWarning(message);
+                    sessions.Remove(session);
+                }
+            }
+        }
     }
 
     private static List<T> GetDataFromCsv<T>(string fileData)

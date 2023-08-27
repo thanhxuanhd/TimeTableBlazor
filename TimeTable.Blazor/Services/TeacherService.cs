@@ -44,5 +44,23 @@ namespace TimeTable.Blazor.Services
                 Id = s.Id
             }).AsNoTracking().ToList();
         }
+
+        public List<TeacherDto> GetTeachers(LoadDataArgs args)
+        {
+            var query = _context.Teachers.AsQueryable();
+
+            if (!string.IsNullOrEmpty(args.Filter))
+            {
+                query = query.Where(c => c.Code.ToLower().Contains(args.Filter.ToLower()) || c.FirstName.ToLower().Contains(args.Filter.ToLower()));
+            }
+
+            return query.Select(s => new TeacherDto()
+            {
+                Code = s.Code,
+                FirstName = s.FirstName,
+                LastName = s.LastName,
+                Id = s.Id
+            }).AsNoTracking().ToList();
+        }
     }
 }

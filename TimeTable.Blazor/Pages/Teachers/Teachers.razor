@@ -1,5 +1,6 @@
 ﻿@page "/Teachers"
 @inject ITeacherService TeacherService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Teacher</PageTitle>
 <h3>Teachers</h3>
@@ -42,6 +43,6 @@
 
     public void CreateTeacher(MouseEventArgs e)
     {
-        
+        NavigationManager.NavigateTo("/Teachers/Create");
     }
 }

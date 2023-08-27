@@ -1,0 +1,73 @@
+﻿@page "/Subjects/Create"
+@inject ITeacherService TeacherService
+
+<RadzenCard class="w-50 m-auto">
+    <h3>Create Subject</h3>
+
+    <RadzenTemplateForm TItem="SubjectDto" Data="@Model" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+        <div class="row">
+            <div class="col-12 mb-2">
+                <RadzenText Text="Subject Code" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value=@Model.Code Name="Code" MaxLength="20" class="w-100" />
+                <RadzenRequiredValidator Component="Code" Text="Subject Code is required" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenText Text="Name" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value=@Model.Name Name="Name" class="w-100" />
+                <RadzenRequiredValidator Component="Name" Text="Name is required" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenText Text="Description" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextArea @bind-Value=@Model.Description Name="Description" class="w-100" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenText Text="Teacher" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenDropDown AllowClear="true" @bind-Value=Model.TeacherId Name="Teacher"
+                                LoadData=@LoadTeacher AllowFiltering="true"
+                                Data=@Teachers TextProperty="DisplayInfo" ValueProperty="Id" Placeholder="Please select Room" class="w-100" />
+                <RadzenRequiredValidator Text="Teacher is required" Component="Teacher" />
+            </div>
+
+            <div class="col-12">
+                <RadzenButton ButtonType="ButtonType.Submit" Text="Save" />
+            </div>
+        </div>
+
+    </RadzenTemplateForm>
+</RadzenCard>
+
+@code {
+    private SubjectDto Model { get; set; }
+    private List<TeacherDto> Teachers { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Model = new SubjectDto();
+    }
+
+    private void LoadTeacher(LoadDataArgs args)
+    {
+        Teachers = TeacherService.GetTeachers( args);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnSubmit(SubjectDto model)
+    {
+    }
+
+    void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+    }
+}

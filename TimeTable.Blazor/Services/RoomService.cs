@@ -16,6 +16,11 @@ public class RoomService : IRoomService
         _context = context;
     }
 
+    public void CreateRoom(RoomDto room)
+    {
+        throw new NotImplementedException();
+    }
+
     public List<RoomDto> GetRooms(LoadDataArgs args, out int count)
     {
         var query = _context.Rooms.AsQueryable();
@@ -40,6 +45,24 @@ public class RoomService : IRoomService
         {
             Code = s.Code,
             Location = s.Location,
+            Id = s.Id
+        }).AsNoTracking().ToList();
+    }
+
+    public List<RoomDto> GetRooms(LoadDataArgs args)
+    {
+        var query = _context.Rooms.AsQueryable();
+
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            query = query.Where(c => c.Code.ToLower().Contains(args.Filter.ToLower()) || c.Location.ToLower().Contains(args.Filter.ToLower()));
+        }
+
+        return query.Select(s => new RoomDto()
+        {
+            Code = s.Code,
+            Location = s.Location,
+            Id = s.Id
         }).AsNoTracking().ToList();
     }
 }

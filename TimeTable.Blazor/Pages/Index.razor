@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using TimeTable.Blazor.Models;
+@using TimeTable.Blazor.Pages.Sessions;
 @inject DialogService DialogService
 @inject ITimetableService TimetableService
 @inject INotifyService NotifyService
@@ -31,7 +32,7 @@
         base.OnInitialized();
 
         appointments = new List<Appointment>();
-        limitedRange = DateTime.Now.AddDays(-30);
+        limitedRange = DateTime.Now.AddDays(-40);
         try
         {
             appointments = TimetableService.GetAppointments(limitedRange);
@@ -62,16 +63,19 @@
     {
         if (args.View.Text != "Year")
         {
+            await DialogService.OpenAsync<AddAppointment>("Add Appointment",
+                 new Dictionary<string, object> { { "Start", args.Start }, { "End", args.End } });
+
         }
     }
 
     async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<Appointment> args)
     {
-        //console.Log($"AppointmentSelect: Appointment={args.Data.Text}");
+        await DialogService.OpenAsync<EditAppointment>("Edit Appointment", new Dictionary<string, object> { { "Appointment", args.Data } });
 
-        //await DialogService.OpenAsync<EditAppointmentPage>("Edit Appointment", new Dictionary<string, object> { { "Appointment", args.Data } });
+        await scheduler.Reload();
 
-        //await scheduler.Reload();
+        await InvokeAsync(StateHasChanged);
     }
 
     void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<Appointment> args)

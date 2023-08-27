@@ -42,7 +42,29 @@ public class SubjectService : ISubjectService
             Name = s.Name,
             TeacherName = $"{s.Teacher.FirstName} {s.Teacher.LastName}",
             TeacherId = s.TeacherId,
-            Id = s.Id
+            Id = s.Id,
+            Code = s.Code
+        }).AsNoTracking().ToList();
+    }
+
+    public List<SubjectDto> GetSubjects(LoadDataArgs args)
+    {
+        var query = _context.Subjects.Include(x => x.Teacher).AsQueryable();
+
+
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            query = query.Where(c => c.Code.ToLower().Contains(args.Filter.ToLower()) || c.Name.ToLower().Contains(args.Filter.ToLower()));
+        }
+
+        return query.Select(s => new SubjectDto()
+        {
+            Description = s.Description,
+            Name = s.Name,
+            TeacherName = $"{s.Teacher.FirstName} {s.Teacher.LastName}",
+            TeacherId = s.TeacherId,
+            Id = s.Id,
+            Code = s.Code
         }).AsNoTracking().ToList();
     }
 }

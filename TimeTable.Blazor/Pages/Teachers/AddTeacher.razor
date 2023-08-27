@@ -1,18 +1,18 @@
-﻿@page "/Students/Create"
+﻿@page "/Teachers/Create"
 
-<PageTitle>Create Subject</PageTitle>
+<PageTitle>Create Teacher</PageTitle>
 
 <RadzenCard class="w-50 m-auto">
-    <h3>Create Student</h3>
+    <h3>Create Room</h3>
 
-    <RadzenTemplateForm TItem="StudentDto" Data="@Model" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+    <RadzenTemplateForm TItem="TeacherDto" Data="@Model" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
         <div class="row">
             <div class="col-12 mb-2">
-                <RadzenText Text="Student Code" />
+                <RadzenText Text="Teacher Code" />
             </div>
             <div class="col-12 mb-2">
                 <RadzenTextBox @bind-Value=@Model.Code Name="Code" MaxLength="20" class="w-100" />
-                <RadzenRequiredValidator Component="Code" Text="Student Code is required" />
+                <RadzenRequiredValidator Component="Code" Text="Teacher Code is required" />
             </div>
 
             <div class="col-12 mb-2">
@@ -23,12 +23,11 @@
                 <RadzenRequiredValidator Component="FirstName" Text="First Name is required" />
             </div>
 
-
             <div class="col-12 mb-2">
-                <RadzenText Text="Last Name" />
+                <RadzenText Text="Location" />
             </div>
             <div class="col-12 mb-2">
-                <RadzenTextBox @bind-Value=@Model.LastName Name="FirstName" class="w-100" />
+                <RadzenTextBox @bind-Value=@Model.LastName Name="LastName" class="w-100" />
             </div>
 
             <div class="col-12 mb-2">
@@ -47,23 +46,21 @@
     </RadzenTemplateForm>
 </RadzenCard>
 
-@code {
 
-    private StudentDto Model{ get; set; }
+@code {
+    private TeacherDto Model { get; set; }
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        Model = new StudentDto();
+        Model = new TeacherDto();
     }
 
-    void OnSubmit(StudentDto model)
+    private void OnSubmit(TeacherDto model)
     {
-        //DialogService.Close(model);
     }
 
     void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
     {
-
     }
 }

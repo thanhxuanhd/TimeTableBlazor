@@ -28,9 +28,13 @@ public class TimetableService : ITimetableService
                 EndDate = t.EndTime,
                 Location = t.Session.Room.Location,
                 RoomCode = t.Session.Room.Code,
+                SujectId = t.Session.SubjectId,
+                RoomId = t.Session.RoomId,
                 SessionName = t.Session.Name,
                 SubjectName = t.Session.Subject.Name,
-                TeacherName = t.Session.Subject.Teacher.GetFullName()
+                TeacherName = t.Session.Subject.Teacher.GetFullName(),
+                Description = t.Session.Description,
+                Id = t.Session.Id,
             });
 
         return appointments.ToList();

@@ -1,0 +1,112 @@
+﻿@inject DialogService DialogService
+@inject ISubjectService SubjectService
+@inject IRoomService RoomService
+@inject ISessionService SessionService
+
+<RadzenTemplateForm TItem="AppointmentDto" Data="@Model" Submit=@OnSubmit>
+    <div class="row px-3">
+        <div class="col-12">
+            <RadzenText Text="Session Name" />
+        </div>
+        <div class="col-12 mb-2">
+            <RadzenTextBox @bind-Value="@Model.SessionName" Name="SessionNameValue" class="w-100" />
+            <RadzenRequiredValidator Text="Session Name is required" Component="SessionNameValue" />
+        </div>
+
+        <div class="col-12">
+            <RadzenText Text="Description" />
+        </div>
+        <div class="col-12 mb-2">
+            <RadzenTextArea @bind-Value="@Model.Description" Name="SessionNameValue" class="w-100" />
+        </div>
+
+        <div class="col-12">
+            <RadzenText Text="Subject" />
+        </div>
+
+        <div class="col-12">
+            <RadzenDropDown AllowClear="true" @bind-Value="@Model.SubjectId" Name="SubjectId"
+                            LoadData=@LoadSubject AllowFiltering="true"
+                            Data=@Subjects TextProperty="Name" ValueProperty="Id" class="w-100" />
+            <RadzenRequiredValidator Text="Subject is required" Component="SubjectId" />
+        </div>
+
+        <div class="col-12">
+            <RadzenText Text="Room" />
+        </div>
+
+        <div class="col-12 mb-2">
+            <RadzenDropDown AllowClear="true" @bind-Value="@Model.RoomId" Name="Room"
+                            LoadData=@LoadRooms AllowFiltering="true"
+                            Data=@Rooms TextProperty="Name" ValueProperty="Id" class="w-100" />
+            <RadzenRequiredValidator Text="Room is required" Component="Room" />
+        </div>
+
+        <div class="col-12">
+            <RadzenText Text="Start" />
+        </div>
+
+        <div class="col-12 mb-2">
+            <RadzenDatePicker @bind-Value="@Model.StartDate" Name="StartDate" ShowTime="true" class="w-100" />
+            <RadzenRequiredValidator Text="Start is required" Component="StartDate" />
+        </div>
+
+        <div class="col-12">
+            <RadzenText Text="End" />
+        </div>
+
+        <div class="col-12 mb-2">
+            <RadzenDatePicker Name="EndDate" @bind-Value="@Model.EndDate" ShowTime="true" class="w-100" />
+            <RadzenRequiredValidator Component="EndDate" Text="End is required" />
+        </div>
+
+        <div class="col-12">
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Save" />
+        </div>
+    </div>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter]
+    public Appointment Appointment { get; set; }
+    private AppointmentDto Model { get; set; }
+
+    private List<SubjectDto> Subjects { set; get; }
+    private List<RoomDto> Rooms { set; get; }
+
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        Model = new AppointmentDto()
+            {
+                StartDate = Appointment.StartDate,
+                EndDate = Appointment.EndDate,
+                RoomId = Appointment.RoomId,
+                SubjectId = Appointment.SujectId,
+                SessionName = Appointment.SessionName,
+                Description = Appointment.Description,
+                Id = Appointment.Id
+            };
+    }
+
+    private void LoadSubject(LoadDataArgs args)
+    {
+        Subjects = SubjectService.GetSubjects(args);
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void LoadRooms(LoadDataArgs args)
+    {
+        Rooms = RoomService.GetRooms(args);
+    }
+
+
+    void OnSubmit(AppointmentDto model)
+    {
+        SessionService.UpdateSession(model);
+        DialogService.Close(model);
+    }
+}

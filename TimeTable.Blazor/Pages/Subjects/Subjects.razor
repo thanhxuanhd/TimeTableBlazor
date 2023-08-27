@@ -1,5 +1,6 @@
 ﻿@page "/Subjects"
 @inject ISubjectService SubjectService
+@inject NavigationManager Navigation
 
 <PageTitle>Subject</PageTitle>
 
@@ -43,6 +44,6 @@
 
     private void CreateSubject(MouseEventArgs e)
     {
-        
+        Navigation.NavigateTo("/Subjects/Create");
     }
 }

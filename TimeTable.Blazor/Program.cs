@@ -32,6 +32,7 @@ namespace TimeTable.Blazor
             builder.Services.AddScoped<IRoomService, RoomService>();
             builder.Services.AddScoped<INotifyService, NotifyService>();
             builder.Services.AddScoped<ITimetableService, TimetableService>();
+            builder.Services.AddScoped<ISessionService, SessionService>();
 
             builder.Services.Configure<List<ImportTemplate>>(builder.Configuration.GetSection("ImportTemplates"));
 

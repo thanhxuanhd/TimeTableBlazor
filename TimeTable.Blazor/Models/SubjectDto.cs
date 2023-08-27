@@ -2,7 +2,7 @@
 
 public class SubjectDto
 {
-    public Guid Id { get; set; }
+    public Guid? Id { get; set; }
 
     public string Code { get; set; }
 
@@ -10,7 +10,7 @@ public class SubjectDto
 
     public string Description { get; set; }
 
-    public Guid TeacherId { get; set; }
+    public Guid? TeacherId { get; set; }
 
     public string TeacherName { get; set; }
 }

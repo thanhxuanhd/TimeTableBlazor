@@ -2,7 +2,7 @@
 
 public class TeacherDto
 {
-    public Guid Id { get; set; }
+    public Guid? Id { get; set; }
 
     public string Code { get; set; }
 
@@ -11,6 +11,8 @@ public class TeacherDto
     public string LastName { get; set; }
 
     public string Email { get; set; }
+
+    public string DisplayInfo => $"{Code} - {FirstName} {LastName}";
 }
 
 public class TeacherImportDto
