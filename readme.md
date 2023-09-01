@@ -25,9 +25,9 @@ Note feature:
   - Update (TBC)
   - Delete (TBC)
 - Time Table
-  - View (TBC - can view data from import)
-  - Create (TBC)
-  - Edit (TBC)
+  - View
+  - Create
+  - Edit 
 - Import (Done Import using CSV file - file refer as [`TimeTable.Blazor\Template`]) - TBC Validation input.
   - Student
   - Teacher
@@ -45,6 +45,7 @@ How to run the project.
 ```Powershell
 update-database ## Create database
 ## OR
+dotnet tool install --global dotnet-ef # If you misspelled a built-in dotnet command.
 dotnet ef database update
 
 ## Start application
