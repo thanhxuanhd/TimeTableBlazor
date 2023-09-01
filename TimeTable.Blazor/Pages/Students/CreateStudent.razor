@@ -1,4 +1,7 @@
 ﻿@page "/Students/Create"
+@inject IStudentService StudentService;
+@inject INotifyService NotifyService;
+@inject NavigationManager NavigationManager;
 
 <PageTitle>Create Subject</PageTitle>
 
@@ -49,7 +52,7 @@
 
 @code {
 
-    private StudentDto Model{ get; set; }
+    private StudentDto Model { get; set; }
 
     protected override void OnInitialized()
     {
@@ -59,11 +62,19 @@
 
     void OnSubmit(StudentDto model)
     {
-        //DialogService.Close(model);
+        var success = StudentService.CreateStudent(model);
+        if (success)
+        {
+            NotifyService.Success("Added Student Success.");
+            NavigationManager.NavigateTo("/Students");
+        }
+        else
+        {
+            NotifyService.Error("Add Student Error.");
+        }
     }
 
     void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
     {
-
     }
 }
