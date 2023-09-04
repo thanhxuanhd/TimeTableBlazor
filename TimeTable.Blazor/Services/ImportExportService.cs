@@ -78,8 +78,7 @@ public class ImportExportService : IImportExportService
                 var studentDto = studentDtos.FirstOrDefault(s => s.Code.Equals(student.Code, StringComparison.OrdinalIgnoreCase));
                 if (studentDto is not null)
                 {
-                    string message = $"Duplicate Student: {studentDto.Code}";
-                    _logger.LogWarning(message);
+                    _logger.LogWarning("Duplicate Student: [{Code}]", student.Code);
                     studentDtos.Remove(studentDto);
                 }
             }
@@ -88,10 +87,10 @@ public class ImportExportService : IImportExportService
         var students = studentDtos.Select(s => new Student()
         {
             Id = Guid.NewGuid(),
-            Code = s.Code,
-            Email = s.Email,
-            FirstName = s.FirstName,
-            LastName = s.LastName,
+            Code = s.Code?.Trim(),
+            Email = s.Email?.Trim(),
+            FirstName = s.FirstName?.Trim(),
+            LastName = s.LastName?.Trim(),
         });
 
         if (students.Any())
@@ -119,8 +118,7 @@ public class ImportExportService : IImportExportService
                 var teacherDto = teacherDtos.FirstOrDefault(s => s.Code.Equals(teacher.Code, StringComparison.OrdinalIgnoreCase));
                 if (teacherDto is not null)
                 {
-                    string message = $"Duplicate Teacher: {teacherDto.Code}";
-                    _logger.LogWarning(message);
+                    _logger.LogWarning("Duplicate Teacher: [{Code}]", teacherDto.Code);
                     teacherDtos.Remove(teacherDto);
                 }
             }
@@ -129,9 +127,9 @@ public class ImportExportService : IImportExportService
         var teachers = teacherDtos.Select(s => new Teacher()
         {
             Id = Guid.NewGuid(),
-            Code = s.Code,
-            Email = s.Email,
-            FirstName = s.FirstName,
+            Code = s.Code?.Trim(),
+            Email = s.Email?.Trim(),
+            FirstName = s.FirstName?.Trim(),
         });
 
         if (teachers.Any())
@@ -163,8 +161,7 @@ public class ImportExportService : IImportExportService
                 var subjectDto = subjectDtos.FirstOrDefault(s => s.Code.Equals(subject.Code, StringComparison.OrdinalIgnoreCase));
                 if (subjectDto is not null)
                 {
-                    string message = $"Duplicate Subject: {subjectDto.Code}";
-                    _logger.LogWarning(message);
+                    _logger.LogWarning("Duplicate Subject: [{Code}]", subject.Code);
                     subjectDtos.Remove(subjectDto);
                 }
             }
@@ -173,9 +170,9 @@ public class ImportExportService : IImportExportService
         var subjects = subjectDtos.Select(s => new Subject()
         {
             Id = Guid.NewGuid(),
-            Code = s.Code,
-            Description = s.Description,
-            Name = s.Name,
+            Code = s.Code?.Trim(),
+            Description = s.Description?.Trim(),
+            Name = s.Name?.Trim(),
             TeacherId = existingTeacher.FirstOrDefault(x => x.Code.Equals(s.TeacherCode, StringComparison.OrdinalIgnoreCase))?.Id ?? Guid.NewGuid()
         });
 
@@ -204,8 +201,7 @@ public class ImportExportService : IImportExportService
                 RoomImportDto roomDto = roomDtos.FirstOrDefault(s => s.Code.Equals(room.Code, StringComparison.OrdinalIgnoreCase));
                 if (roomDto is not null)
                 {
-                    string message = $"Duplicate Room: {roomDto.Code}";
-                    _logger.LogWarning(message);
+                    _logger.LogWarning("Duplicate Room: {Code}", room.Code);
                     roomDtos.Remove(roomDto);
                 }
             }
@@ -214,8 +210,8 @@ public class ImportExportService : IImportExportService
         var rooms = roomDtos.Select(s => new Room()
         {
             Id = Guid.NewGuid(),
-            Code = s.Code,
-            Location = s.Location
+            Code = s.Code?.Trim(),
+            Location = s.Location?.Trim(),
         });
 
         if (rooms.Any())
@@ -249,8 +245,8 @@ public class ImportExportService : IImportExportService
             var sessionData = timetable.Select(t => new SessionImportDto()
             {
                 Id = Guid.NewGuid(),
-                Name = t.SessionName,
-                Description = t.SessionDescription,
+                Name = t.SessionName?.Trim(),
+                Description = t.SessionDescription?.Trim(),
                 RoomId = rooms.FirstOrDefault(r => r.Code == t.RoomCode)?.Id ?? Guid.Empty,
                 SubjectId = subjects.FirstOrDefault(s => s.Code == t.SubjectCode)?.Id ?? Guid.Empty,
                 StartTime = t.StartTime,
@@ -264,8 +260,8 @@ public class ImportExportService : IImportExportService
         var sessions = sessionDtos.Where(s => s.RoomId != Guid.Empty && s.SubjectId != Guid.Empty).Select(s => new Session()
         {
             Id = s.Id,
-            Name = s.Name,
-            Description = s.Description,
+            Name = s.Name?.Trim(),
+            Description = s.Description?.Trim(),
             RoomId = s.RoomId,
             SubjectId = s.SubjectId,
             TimeSlotId = s.TimeSlotId,
@@ -317,16 +313,15 @@ public class ImportExportService : IImportExportService
                 string message = string.Empty;
                 if (session.Timeslot is null && exisitingSession.Timeslot is null)
                 {
-                    message = $"Timeslot is null: {session.Name}";
-                    _logger.LogWarning(message);
+                    message = $"";
+                    _logger.LogWarning("Timeslot is null: [{Name}]", session.Name);
                     continue;
                 }
 
                 if ((session.Timeslot.StartTime == exisitingSession.Timeslot.StartTime && session.Timeslot.EndTime == exisitingSession.Timeslot.EndTime)
                     || (session.Timeslot.StartTime <= exisitingSession.Timeslot.EndTime && session.Timeslot.EndTime >= exisitingSession.Timeslot.StartTime))
                 {
-                    message = $"Duplicate Session Or Overlaps: {session.Name}";
-                    _logger.LogWarning(message);
+                    _logger.LogWarning("Duplicate Session Or Overlaps: [{Name}]", session.Name);
                     sessions.Remove(session);
                 }
             }

@@ -10,10 +10,101 @@ namespace TimeTable.Blazor.Services;
 public class SubjectService : ISubjectService
 {
     private readonly TimeTableDbContext _context;
+    private readonly ILogger<SubjectService> _logger;
 
-    public SubjectService(TimeTableDbContext context)
+    private const string ErrorMessage = "Error: {message}";
+
+    public SubjectService(TimeTableDbContext context, ILogger<SubjectService> logger)
     {
         _context = context;
+        _logger = logger;
+    }
+
+    public Tuple<bool, List<string>> CreateSubject(SubjectDto subjectDto)
+    {
+        var success = true;
+        var errors = new List<string>();
+        try
+        {
+            if (!ValidateSubject(subjectDto, errors))
+            {
+                success = false;
+                return Tuple.Create(success, errors);
+            }
+
+            if (IsDuplicate(subjectDto.Code, errors))
+            {
+                success = false;
+                return Tuple.Create(success, errors);
+            }
+
+            var subject = new Subject()
+            {
+                Id = Guid.NewGuid(),
+                Code = subjectDto.Code?.Trim(),
+                Description = subjectDto.Description?.Trim(),
+                Name = subjectDto.Name?.Trim(),
+                TeacherId = subjectDto.TeacherId.Value
+            };
+
+            _context.Add(subject);
+            _context.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            var message = ex.Message;
+            errors.Add(message);
+            _logger.LogError(ErrorMessage, message);
+        }
+
+        return Tuple.Create(success, errors);
+    }
+
+    public Tuple<bool, List<string>> DeleteSubject(Guid id)
+    {
+        var success = true;
+        var errors = new List<string>();
+
+        try
+        {
+            var subject = GetSubject(id);
+
+            // TODO Validate Subject Used
+
+            if (subject is null)
+            {
+                var message = "Subject doesn't exist.";
+                errors.Add(message);
+                _logger.LogError(ErrorMessage, message);
+                return Tuple.Create(success, errors);
+            }
+
+            _context.Remove(subject);
+            _context.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            var message = ex.Message;
+            errors.Add(message);
+            _logger.LogError(ErrorMessage, message);
+            success = false;
+        }
+
+        return Tuple.Create(success, errors);
+    }
+
+    public SubjectDto GetSubjectById(Guid id)
+    {
+        var subject = GetSubject(id);
+
+        return subject is null ? new SubjectDto() : new SubjectDto()
+        {
+            Code = subject.Code?.Trim(),
+            Description = subject.Description?.Trim(),
+            Id = subject.Id,
+            Name = subject.Name?.Trim(),
+            TeacherId = subject.TeacherId
+        };
     }
 
     public List<SubjectDto> GetSubjects(LoadDataArgs args, out int count)
@@ -51,7 +142,6 @@ public class SubjectService : ISubjectService
     {
         var query = _context.Subjects.Include(x => x.Teacher).AsQueryable();
 
-
         if (!string.IsNullOrEmpty(args.Filter))
         {
             query = query.Where(c => c.Code.ToLower().Contains(args.Filter.ToLower()) || c.Name.ToLower().Contains(args.Filter.ToLower()));
@@ -66,5 +156,120 @@ public class SubjectService : ISubjectService
             Id = s.Id,
             Code = s.Code
         }).AsNoTracking().ToList();
+    }
+
+    public Tuple<bool, List<string>> UpdateSubject(SubjectDto subjectDto)
+    {
+        var success = true;
+        var errors = new List<string>();
+        try
+        {
+            if (!ValidateSubject(subjectDto, errors))
+            {
+                success = false;
+                return Tuple.Create(success, errors);
+            }
+
+            if (IsDuplicate(subjectDto.Code, errors, subjectDto.Id.Value))
+            {
+                success = false;
+                return Tuple.Create(success, errors);
+            }
+
+            var subject = GetSubject(subjectDto.Id.Value);
+
+            if (subject is null)
+            {
+                var message = "Subject doesn't exist.";
+                errors.Add(message);
+                _logger.LogError(ErrorMessage, message);
+                return Tuple.Create(success, errors);
+            }
+
+            subject.Code = subjectDto?.Code.Trim();
+            subject.TeacherId = subject.TeacherId;
+            subject.Name = subjectDto.Name?.Trim();
+            subject.Description = subjectDto.Description.Trim();
+
+            _context.Update(subject);
+            _context.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            var message = ex.Message;
+            errors.Add(message);
+            _logger.LogError(ErrorMessage, message);
+        }
+
+        return Tuple.Create(success, errors);
+    }
+
+    private bool ValidateSubject(SubjectDto subject, List<string> errors)
+    {
+        var isValid = true;
+        string message;
+
+        if (string.IsNullOrEmpty(subject.Code))
+        {
+            isValid = false;
+            message = "Subject Code is required.";
+            errors.Add(message);
+            _logger.LogError(ErrorMessage, message);
+        }
+
+        if (string.IsNullOrEmpty(subject.Name))
+        {
+            isValid &= false;
+            message = "Subject Name is required.";
+            errors.Add(message);
+            _logger.LogError(ErrorMessage, message);
+        }
+
+        if (isValid && subject.Code?.Length > 20)
+        {
+            isValid &= false;
+            message = "Subject Code greater than  greater than 20 characters.";
+            errors.Add(message);
+            _logger.LogError(ErrorMessage, message);
+        }
+
+        if (isValid && !subject.TeacherId.HasValue)
+        {
+            isValid &= false;
+            message = "Subject Teacher is required";
+            errors.Add(message);
+            _logger.LogError(ErrorMessage, message);
+        }
+
+        return isValid;
+    }
+
+    private bool IsDuplicate(string code, List<string> errors, Guid? id = null)
+    {
+        Subject subject = null;
+
+        if (!id.HasValue)
+        {
+            subject = _context.Subjects.AsEnumerable().FirstOrDefault(s => s.Code.Equals(code, StringComparison.OrdinalIgnoreCase));
+        }
+        else
+        {
+            subject = _context.Subjects.AsEnumerable().FirstOrDefault(s => s.Code.Equals(code, StringComparison.OrdinalIgnoreCase) && s.Id != id);
+        }
+
+        var isDuplicate = subject is not null;
+        if (isDuplicate)
+        {
+            var message = $"Subject is duplicate with [{code}]";
+            errors.Add(message);
+            _logger.LogError(ErrorMessage, message);
+        }
+
+        return isDuplicate;
+    }
+
+    private Subject GetSubject(Guid id)
+    {
+        return _context.Subjects.Include(s => s.Teacher).FirstOrDefault(s => s.Id == id);
     }
 }

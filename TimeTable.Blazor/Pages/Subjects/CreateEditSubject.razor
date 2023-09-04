@@ -1,0 +1,156 @@
+﻿@page "/Subjects/Create"
+@page "/Subjects/Edit/{Id}"
+
+@inject NavigationManager Navigation
+@inject ISubjectService SubjectService
+@inject INotificationService NotifyService
+@inject ITeacherService TeacherService
+
+<RadzenCard class="w-75 m-auto">
+    <h3>
+        @if (!string.IsNullOrEmpty(Id))
+        {
+            <span>Edit Subject</span>
+        }
+        else
+        {
+            <span>Create Subject</span>
+        }
+    </h3>
+
+    <div class="errors">
+        @if (Errors.Count > 0)
+        {
+            <ul>
+                @foreach (var error in Errors.Where(e => !string.IsNullOrEmpty(e)))
+                {
+                    <li class="text-danger">@error</li>
+                }
+            </ul>
+        }
+    </div>
+  
+    <RadzenTemplateForm TItem="SubjectDto" Data="@Model" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+        <div class="row">
+            <input type="hidden" @bind-value=@Model.Id />
+            <div class="col-12 mb-2">
+                <RadzenText Text="Subject Code" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value=@Model.Code Name="Code" MaxLength="20" class="w-100" />
+                <RadzenRequiredValidator Component="Code" Text="Subject Code is required" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenText Text="Name" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value=@Model.Name Name="Name" class="w-100" />
+                <RadzenRequiredValidator Component="Name" Text="Name is required" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenText Text="Description" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextArea @bind-Value=@Model.Description Name="Description" class="w-100" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenText Text="Teacher" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenDropDown AllowClear="true" @bind-Value=Model.TeacherId Name="Teacher"
+                                LoadData=@LoadTeacher AllowFiltering="true"
+                                Data=@Teachers TextProperty="DisplayInfo" ValueProperty="Id" Placeholder="Please select Room" class="w-100" />
+                <RadzenRequiredValidator Text="Teacher is required" Component="Teacher" />
+            </div>
+
+            <div class="col-12">
+                <RadzenButton ButtonType="ButtonType.Submit" Text="Save" />
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Text="Cancel" Click="OnCanel" />
+            </div>
+        </div>
+
+    </RadzenTemplateForm>
+</RadzenCard>
+
+@code {
+    private SubjectDto Model { get; set; }
+
+    private List<TeacherDto> Teachers { get; set; }
+
+    private List<string> Errors { get; set; } = new List<string>();
+
+    [Parameter]
+    public string Id { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Guid.TryParse(Id, out Guid subjectId);
+        Model = subjectId != Guid.Empty ? GetSubject(subjectId) : new SubjectDto();
+    }
+
+    private void OnSubmit(SubjectDto model)
+    {
+        if (!model.Id.HasValue)
+        {
+            OnCreate(model);
+        }
+        else
+        {
+            OnEdit(model);
+        }
+    }
+
+    void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+    }
+
+    private void LoadTeacher(LoadDataArgs args)
+    {
+        Teachers = TeacherService.GetTeachers(args);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnCanel()
+    {
+        Navigation.NavigateTo("/Subjects");
+    }
+
+    SubjectDto GetSubject(Guid id)
+    {
+        return SubjectService.GetSubjectById(id);
+    }
+
+    void OnCreate(SubjectDto model)
+    {
+        (bool success, List<string> errors) = SubjectService.CreateSubject(model);
+        if (success)
+        {
+            NotifyService.Success("Added Subject Success.");
+            Navigation.NavigateTo("/Subjects");
+        }
+        else
+        {
+            NotifyService.Error("Add Subject Error.");
+            Errors = errors;
+        }
+    }
+
+    void OnEdit(SubjectDto model)
+    {
+        (bool success, List<string> errors) = SubjectService.UpdateSubject(model);
+        if (success)
+        {
+            NotifyService.Success("Updated Subject Success.");
+            Navigation.NavigateTo("/Subjects");
+        }
+        else
+        {
+            NotifyService.Error("Updated Subject Error.");
+            Errors = errors;
+        }
+    }
+}

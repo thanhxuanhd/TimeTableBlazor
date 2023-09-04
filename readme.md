@@ -6,35 +6,37 @@ Note feature:
 
 - Students
   - View (Support filter - Done)
-  - Create (TBC)
-  - Update (TBC)
-  - Delete (TBC)
+  - Create (Done)
+  - Update (Done)
+  - Delete (Done)
 - Teacher
   - View (Support filter - Done)
-  - Create (TBC)
-  - Update (TBC)
-  - Delete (TBC)
+  - Create (Done)
+  - Update (Done)
+  - Delete (Done)
 - Subject
   - View (Support filter - Done)
-  - Create (TBC)
-  - Update (TBC)
-  - Delete (TBC)
+  - Create (Done)
+  - Update (Done)
+  - Delete (Done)
 - Room
   - View
-  - Create (TBC)
-  - Update (TBC)
-  - Delete (TBC)
+  - Create (Done)
+  - Update (Done)
+  - Delete (Done)
 - Time Table
   - View
   - Create
-  - Edit 
+  - Edit
 - Import (Done Import using CSV file - file refer as [`TimeTable.Blazor\Template`]) - TBC Validation input.
   - Student
   - Teacher
   - Room
   - Subject
   - Timetable
-- Export timetable to CSV (BTC)
+
+- Export timetable to CSV (TBC)
+- Application Unit Test
 
 How to run the project.
 

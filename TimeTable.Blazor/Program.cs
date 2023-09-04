@@ -30,7 +30,7 @@ namespace TimeTable.Blazor
             builder.Services.AddScoped<ITeacherService, TeacherService>();
             builder.Services.AddScoped<ISubjectService, SubjectService>();
             builder.Services.AddScoped<IRoomService, RoomService>();
-            builder.Services.AddScoped<INotifyService, NotifyService>();
+            builder.Services.AddScoped<INotificationService, NotificationDataService>();
             builder.Services.AddScoped<ITimetableService, TimetableService>();
             builder.Services.AddScoped<ISessionService, SessionService>();
 

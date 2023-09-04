@@ -52,7 +52,7 @@ public class SessionService : ISessionService
         catch (Exception ex)
         {
             success = false;
-            _logger.LogError(ex.Message);
+            _logger.LogError("Error: {message}", ex.Message);
         }
 
         return success;
@@ -90,7 +90,7 @@ public class SessionService : ISessionService
         catch (Exception ex)
         {
             success = false;
-            _logger.LogError(ex.Message);
+            _logger.LogError("Error: {message}", ex.Message);
         }
 
         return success;
@@ -107,7 +107,7 @@ public class SessionService : ISessionService
         if (appointment.StartDate > appointment.EndDate)
         {
             valid = false;
-            _logger.LogError($"StartDate: {appointment.StartDate} greater than End Date: {appointment.EndDate}");
+            _logger.LogError("StartDate: {StartDate} greater than End Date: {EndDate}", appointment.StartDate, appointment.EndDate);
             return valid;
         }
 
@@ -115,7 +115,7 @@ public class SessionService : ISessionService
 
         if (existingSubject is null)
         {
-            _logger.LogError($"Subject [{appointment.SubjectId}] doesn't exist");
+            _logger.LogError("Subject [{SubjectId}] doesn't exist", appointment.SubjectId);
             valid = false;
         }
 
@@ -123,7 +123,7 @@ public class SessionService : ISessionService
 
         if (existingRoom is null)
         {
-            _logger.LogError($"Room [{appointment.RoomId}] doesn't exist");
+            _logger.LogError("Room [{RoomId}] doesn't exist", existingRoom.Id);
             valid = false;
         }
 
@@ -136,8 +136,7 @@ public class SessionService : ISessionService
                 if ((appointment.StartDate == exisitingSession.Timeslot.StartTime && appointment.EndDate == exisitingSession.Timeslot.EndTime)
                        || (appointment.StartDate <= exisitingSession.Timeslot.EndTime && appointment.EndDate >= exisitingSession.Timeslot.StartTime))
                 {
-                    var message = $"Duplicate Session Or Overlaps: {appointment.SessionName}";
-                    _logger.LogWarning(message);
+                    _logger.LogWarning("Duplicate Session Or Overlaps: {sessionName}", appointment.SessionName);
                     valid = false;
                     break;
                 }

@@ -2,25 +2,25 @@
 @using System.Net.Http.Headers
 @inject IImportExportService ImportExportService
 @inject IHttpClientFactory ClientFactory
-@inject NavigationManager NavigationManager
-@inject INotifyService NotifyService
+@inject NavigationManager Navigation
+@inject INotificationService NotifyService
 
-<h3>Import</h3>
+<RadzenCard>
+    <h3>Import</h3>
 
-<div>
-    <div class="rz-text-align-center">
-        <RadzenDropDown @bind-Value=@templateSelect TextProperty="Description" ValueProperty="Type" Data="ImportTemplates" Placeholder="Select Import Type" Style="width: 100%;" />
-    </div>
+    <div>
+        <div class="rz-text-align-center">
+            <RadzenDropDown @bind-Value=@templateSelect TextProperty="Description" ValueProperty="Type" Data="ImportTemplates" Placeholder="Select Import Type" Style="width: 100%;" />
+        </div>
 
-    <div class="py-2">
-        <RadzenCard>
+        <div class="py-2">
             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Manual Upload</RadzenText>
 
             <InputFile OnChange="@OnInputFileChange" @key=@inputFileKey />
-        </RadzenCard>
-    </div>
+        </div>
 
-</div>
+    </div>
+</RadzenCard>
 @code {
     private string templateSelect;
     private Guid inputFileKey;
@@ -61,7 +61,7 @@
             }
 
             var client = ClientFactory.CreateClient();
-            client.BaseAddress = new Uri(NavigationManager.BaseUri);
+            client.BaseAddress = new Uri(Navigation.BaseUri);
             var response = await client.PostAsync($"{client.BaseAddress}api/ImportExport/Upload/{templateSelect}", content);
 
             var messageResponse = await response.Content.ReadAsStringAsync();

@@ -1,0 +1,130 @@
+﻿@page "/Rooms/Create"
+@page "/Rooms/Edit/{Id}"
+
+@inject NavigationManager Navigation
+@inject IRoomService RoomService
+@inject INotificationService NotificationService
+
+<PageTitle>Create Room</PageTitle>
+
+
+
+<RadzenCard class="w-75 m-auto">
+    <h3>
+        @if (!string.IsNullOrEmpty(Id))
+        {
+            <span>Edit Room</span>
+        }
+        else
+        {
+            <span>Create Room</span>
+        }
+    </h3>
+
+    <div class="errors">
+        @if (Errors.Count > 0)
+        {
+            <ul>
+                @foreach (var error in Errors)
+                {
+                    <li class="text-danger">@error</li>
+                }
+            </ul>
+        }
+    </div>
+
+    <RadzenTemplateForm TItem="RoomDto" Data="@Model" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+        <div class="row">
+            <input type="hidden" @bind-value="@Model.Id" />
+            <div class="col-12 mb-2">
+                <RadzenText Text="Room Code" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value=@Model.Code Name="Code" MaxLength="20" class="w-100" />
+                <RadzenRequiredValidator Component="Code" Text="Room Code is required" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenText Text="Location" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value=@Model.Location Name="Location" class="w-100" />
+            </div>
+
+            <div class="col-12">
+                <RadzenButton ButtonType="ButtonType.Submit" Text="Save" />
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Text="Cancel" Click="OnCanel" />
+            </div>
+        </div>
+    </RadzenTemplateForm>
+
+</RadzenCard>
+
+@code {
+    private RoomDto Model { get; set; }
+    private List<string> Errors { get; set; } = new List<string>();
+
+    [Parameter]
+    public string Id { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Guid.TryParse(Id, out Guid roomId);
+        Model = roomId != Guid.Empty ? RoomService.GetRoomById(roomId) : new RoomDto();
+    }
+
+    private void OnSubmit(RoomDto model)
+    {
+        Errors = new List<string>();
+        if (model.Id.HasValue)
+        {
+            OnEdit(model);
+        }
+        else
+        {
+            OnCreate(model);
+        }
+    }
+
+    void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+    }
+
+    private void OnCanel()
+    {
+        Navigation.NavigateTo("/Rooms");
+    }
+
+    void OnCreate(RoomDto room)
+    {
+        (bool success, List<string> errors) = RoomService.CreateRoom(room);
+
+        if (success)
+        {
+            NotificationService.Success("Created room success.");
+            Navigation.NavigateTo("/Rooms");
+        }
+        else
+        {
+            NotificationService.Error("Create room error.");
+            Errors = errors;
+        }
+    }
+
+    void OnEdit(RoomDto room)
+    {
+        (bool success, List<string> errors) = RoomService.UpdateRoom(room);
+
+        if (success)
+        {
+            NotificationService.Success("Updated room success.");
+            Navigation.NavigateTo("/Rooms");
+        }
+        else
+        {
+            NotificationService.Error("Update room error.");
+            Errors = errors;
+        }
+    }
+}

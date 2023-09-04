@@ -3,11 +3,11 @@ using TimeTable.Blazor.Interfaces;
 
 namespace TimeTable.Blazor.Services;
 
-public class NotifyService : INotifyService
+public class NotificationDataService : INotificationService
 {
     private readonly NotificationService _notificationService;
 
-    public NotifyService(NotificationService notificationService)
+    public NotificationDataService(NotificationService notificationService)
     {
         _notificationService = notificationService;
     }

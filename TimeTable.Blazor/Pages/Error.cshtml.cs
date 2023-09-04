@@ -21,6 +21,7 @@ namespace TimeTable.Blazor.Pages
 
         public void OnGet()
         {
+            _logger.LogInformation("Request: [{RequestId}]", RequestId);
             RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
         }
     }

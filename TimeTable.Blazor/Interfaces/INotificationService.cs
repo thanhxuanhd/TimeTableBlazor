@@ -1,6 +1,6 @@
 ﻿namespace TimeTable.Blazor.Interfaces;
 
-public interface INotifyService
+public interface INotificationService
 {
     public void Error(string message);
 

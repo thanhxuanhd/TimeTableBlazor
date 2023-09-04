@@ -1,0 +1,148 @@
+﻿@page "/Teachers/Create"
+@page "/Teachers/Edit/{Id}"
+
+@inject NavigationManager Navigation
+@inject ITeacherService TeacherService
+@inject INotificationService NotifyService
+
+<PageTitle>Create Teacher</PageTitle>
+
+<RadzenCard class="w-75 m-auto">
+    <h3>
+        @if (!string.IsNullOrEmpty(Id))
+        {
+            <span>Edit Teacher</span>
+        }
+        else
+        {
+            <span>Create Teacher</span>
+        }
+    </h3>
+
+    <div class="errors">
+        @if (Errors.Count > 0)
+        {
+            <ul>
+                @foreach (var error in Errors.Where(e => !string.IsNullOrEmpty(e)))
+                {
+                    <li class="text-danger">@error</li>
+                }
+            </ul>
+        }
+    </div>
+    <RadzenTemplateForm TItem="TeacherDto" Data="@Model" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+        <div class="row">
+            <input type="hidden" @bind-value=@Model.Id />
+            <div class="col-12 mb-2">
+                <RadzenText Text="Teacher Code" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value=@Model.Code Name="Code" MaxLength="20" class="w-100" />
+                <RadzenRequiredValidator Component="Code" Text="Teacher Code is required" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenText Text="First Name" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value=@Model.FirstName Name="FirstName" class="w-100" />
+                <RadzenRequiredValidator Component="FirstName" Text="First Name is required" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenText Text="Last Name" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value=@Model.LastName Name="LastName" class="w-100" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenText Text="Email" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value=@Model.Email Name="Email" class="w-100" />
+                <RadzenEmailValidator Component="Email" Text="Email format is incorrect" />
+            </div>
+
+            <div class="col-12">
+                <RadzenButton ButtonType="ButtonType.Submit" Text="Save" />
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Text="Cancel" Click="OnCanel" />
+            </div>
+        </div>
+
+    </RadzenTemplateForm>
+</RadzenCard>
+
+
+@code {
+    private TeacherDto Model { get; set; }
+
+    private List<string> Errors { get; set; } = new List<string>();
+
+    [Parameter]
+    public string Id { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Guid.TryParse(Id, out Guid teacherId);
+        Model = teacherId != Guid.Empty ? GetTeacher(teacherId) : new TeacherDto();
+    }
+
+    private void OnSubmit(TeacherDto model)
+    {
+        if (!model.Id.HasValue)
+        {
+            OnCreate(model);
+        }
+        else
+        {
+            OnEdit(model);
+        }
+    }
+
+    void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+    }
+
+    private void OnCanel()
+    {
+        Navigation.NavigateTo("/Teachers");
+    }
+
+    TeacherDto GetTeacher(Guid? id)
+    {
+        return TeacherService.GetTeacherById(id.Value);
+    }
+
+
+    void OnCreate(TeacherDto model)
+    {
+        (bool success, List<string> errors) = TeacherService.CreateTeacher(model);
+        if (success)
+        {
+            NotifyService.Success("Added Teacher Success.");
+            Navigation.NavigateTo("/Teachers");
+        }
+        else
+        {
+            NotifyService.Error("Add Teacher Error.");
+            Errors = errors;
+        }
+    }
+
+    void OnEdit(TeacherDto model)
+    {
+        (bool success, List<string> errors) = TeacherService.UpdateTeacher(model);
+        if (success)
+        {
+            NotifyService.Success("Updated Teacher Success.");
+            Navigation.NavigateTo("/Teachers");
+        }
+        else
+        {
+            NotifyService.Error("Updated Teacher Error.");
+            Errors = errors;
+        }
+    }
+}

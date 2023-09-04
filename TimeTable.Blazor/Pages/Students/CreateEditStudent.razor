@@ -1,0 +1,150 @@
+﻿@page "/Students/Create"
+@page "/Students/Edit/{Id}"
+
+@inject IStudentService StudentService
+@inject INotificationService NotifyService
+@inject NavigationManager Navigation
+
+<PageTitle>Create Subject</PageTitle>
+
+<RadzenCard class="w-75 m-auto">
+    <h3>
+        @if (!string.IsNullOrEmpty(Id))
+        {
+            <span>Edit Student</span>
+        }
+        else
+        {
+            <span>Create Student</span>
+        }
+    </h3>
+
+    <div class="errors">
+        @if (Errors.Count > 0)
+        {
+            <ul>
+                @foreach (var error in Errors.Where(e => !string.IsNullOrEmpty(e)))
+                {
+                    <li class="text-danger">@error</li>
+                }
+            </ul>
+        }
+    </div>
+
+    <RadzenTemplateForm TItem="StudentDto" Data="@Model" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+        <div class="row">
+            <input type="hidden" @bind-value=@Model.Id />
+            <div class="col-12 mb-2">
+                <RadzenText Text="Student Code" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value="@Model.Code" Name="Code" MaxLength="20" class="w-100" />
+                <RadzenRequiredValidator Component="Code" Text="Student Code is required." />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenText Text="First Name" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value="@Model.FirstName" Name="FirstName" class="w-100" />
+                <RadzenRequiredValidator Component="FirstName" Text="First Name is required." />
+            </div>
+
+
+            <div class="col-12 mb-2">
+                <RadzenText Text="Last Name" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value="@Model.LastName" Name="FirstName" class="w-100" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenText Text="Email" />
+            </div>
+            <div class="col-12 mb-2">
+                <RadzenTextBox @bind-Value="@Model.Email" Name="Email" class="w-100" />
+                <RadzenEmailValidator Component="Email" Text="Email format is incorrect." />
+            </div>
+
+            <div class="col-12">
+                <RadzenButton ButtonType="ButtonType.Submit" Text="Save" />
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Text="Cancel" Click="OnCanel" />
+            </div>
+        </div>
+
+    </RadzenTemplateForm>
+</RadzenCard>
+
+@code {
+
+    private StudentDto Model { get; set; }
+
+    private List<string> Errors { get; set; } = new List<string>();
+
+    [Parameter]
+    public string Id { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        Guid.TryParse(Id, out Guid studentId);
+        Model = studentId != Guid.Empty ? GetStudent(studentId) : new StudentDto();
+    }
+
+    void OnSubmit(StudentDto model)
+    {
+        if (Model.Id.HasValue)
+        {
+            OnEdit(model);
+        }
+        else
+        {
+            OnCreate(model);
+        }
+    }
+
+    void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+    }
+
+    void OnCreate(StudentDto model)
+    {
+        (bool success, List<string> errors) = StudentService.CreateStudent(model);
+        if (success)
+        {
+            NotifyService.Success("Added Student Success.");
+            Navigation.NavigateTo("/Students");
+        }
+        else
+        {
+            NotifyService.Error("Add Student Error.");
+            Errors = errors;
+        }
+    }
+
+    void OnEdit(StudentDto model)
+    {
+        (bool success, List<string> errors) = StudentService.UpdateStudent(model);
+        if (success)
+        {
+            NotifyService.Success("Updated Student Success.");
+            Navigation.NavigateTo("/Students");
+        }
+        else
+        {
+            NotifyService.Error("Updated Student Error.");
+            Errors = errors;
+        }
+    }
+
+    StudentDto GetStudent(Guid? id)
+    {
+        return StudentService.GetStudentById(id.Value);
+    }
+
+    private void OnCanel()
+    {
+        Navigation.NavigateTo("/Students");
+    }
+}

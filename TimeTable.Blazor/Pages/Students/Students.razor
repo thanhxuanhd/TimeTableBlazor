@@ -1,10 +1,12 @@
 ﻿@page "/Students"
-@using TimeTable.Blazor.Interfaces;
-@using TimeTable.Blazor.Models;
-@inject IStudentService StudentService;
-@inject NavigationManager Navigation
 
-<PageTitle>Student</PageTitle>
+@using TimeTable.Blazor.Interfaces
+@using TimeTable.Blazor.Models
+@inject IStudentService StudentService
+@inject NavigationManager Navigation
+@inject DialogService DialogService
+
+<PageTitle>Students</PageTitle>
 
 <RadzenCard>
     <h3>Students</h3>
@@ -13,19 +15,26 @@
     </div>
 
     <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true"
-                    PageSize="20" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                    PageSize="15" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
                     Data="@students" TItem="StudentDto" ColumnWidth="300px"
-                    LogicalFilterOperator="LogicalFilterOperator.Or" IsLoading="@isLoading" LoadData="Load" Count="@count">
+                    LogicalFilterOperator="LogicalFilterOperator.Or" IsLoading="@isLoading" LoadData="Load" Count="@count" @ref="gridStudent">
         <Columns>
             <RadzenDataGridColumn TItem="StudentDto" Property="Code" Title="Code" Frozen="true" Width="100px" TextAlign="TextAlign.Center" />
             <RadzenDataGridColumn TItem="StudentDto" Property="FirstName" Title="First Name" />
             <RadzenDataGridColumn TItem="StudentDto" Property="LastName" Title="Last Name" />
             <RadzenDataGridColumn TItem="StudentDto" Property="Email" Title="Email" />
+            <RadzenDataGridColumn Width="100px" TItem="StudentDto" Property="Id" Title="Action" Filterable="false" Sortable="false">
+                <Template Context="data">
+                    <RadzenButton Variant="Variant.Text" Icon="edit" Click=@(() => EditStudent(data.Id)) Size="ButtonSize.Medium" BusyText="Edit Student" />
+                    <RadzenButton Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click=@( async() => await DeleteStudent(data.Id,data.Code)) Size="ButtonSize.Medium" BusyText="Delete Student" />
+                </Template>
+            </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
 </RadzenCard>
 
 @code {
+    RadzenDataGrid<StudentDto> gridStudent;
     IEnumerable<StudentDto> students;
     bool isLoading = false;
     int count;
@@ -47,5 +56,25 @@
     void CreateUser(MouseEventArgs events)
     {
         Navigation.NavigateTo("/Students/Create");
+    }
+
+    void EditStudent(Guid? Id)
+    {
+        Navigation.NavigateTo($"/Students/Edit/{Id.Value}");
+    }
+
+    async Task DeleteStudent(Guid? id, string code)
+    {
+        bool? success = false;
+
+        success = await DialogService.OpenAsync<DeleteStudent>("Delete Student", new Dictionary<string, object> {
+            { "Id", id.Value },
+            { "Code", code }
+        }, new DialogOptions()
+        {
+            CloseDialogOnEsc = false
+        });
+
+        await gridStudent.Reload();
     }
 }

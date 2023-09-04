@@ -1,0 +1,52 @@
+﻿@inject IStudentService StudentService
+@inject DialogService DialogService
+@inject INotificationService NotifyService
+@inject ILogger<DeleteStudent> Logger
+
+
+<div class="row">
+    <div class="col-12 mb-2">
+        Are your want to delete the Student [@Code] ?
+    </div>
+    <div class="col-12b">
+        <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" />
+        <RadzenButton Text="Cancel" Click="OnCancel" ButtonStyle="ButtonStyle.Light" />
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    [Parameter]
+    public string Code { get; set; }
+
+    private void OnDelete()
+    {
+        try
+        {
+            (bool success, List<string> errors) = StudentService.DeleteStudent(Id);
+            if (success)
+            {
+                NotifyService.Success("Deleted Student Success.");
+            }
+            else
+            {
+                 NotifyService.Error("Delete Student Error.");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            NotifyService.Error("Delete Student Error.");
+            Logger.LogError($"Error: {ex.Message}");
+        }
+
+        DialogService.Close(true);
+    }
+
+    private void OnCancel()
+    {
+        DialogService.Close(true);
+    }
+}
