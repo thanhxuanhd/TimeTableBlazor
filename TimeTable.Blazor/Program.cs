@@ -33,10 +33,18 @@ namespace TimeTable.Blazor
             builder.Services.AddScoped<INotificationService, NotificationDataService>();
             builder.Services.AddScoped<ITimetableService, TimetableService>();
             builder.Services.AddScoped<ISessionService, SessionService>();
+            builder.Services.AddScoped<IApiService, ApiService>();
 
             builder.Services.Configure<List<ImportTemplate>>(builder.Configuration.GetSection("ImportTemplates"));
 
-            builder.Services.AddHttpClient();
+            builder.Services.AddHttpClient<IApiService, ApiService>((s, h) => { }).ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                return new HttpClientHandler()
+                {
+                    UseDefaultCredentials = true,
+                    AllowAutoRedirect = false
+                };
+            });
 
             var app = builder.Build();
 
@@ -54,7 +62,11 @@ namespace TimeTable.Blazor
 
             app.UseRouting();
 
+            app.UseAuthentication(); // the order is important
+            app.UseAuthorization();
+
             app.MapControllers();
+            app.UseHttpLogging();
             app.MapBlazorHub();
             app.MapFallbackToPage("/_Host");
 

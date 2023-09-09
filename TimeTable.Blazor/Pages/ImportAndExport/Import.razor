@@ -1,9 +1,8 @@
 ﻿@page "/Import"
 @using System.Net.Http.Headers
 @inject IImportExportService ImportExportService
-@inject IHttpClientFactory ClientFactory
-@inject NavigationManager Navigation
 @inject INotificationService NotifyService
+@inject IApiService ApiSerivce;
 
 <RadzenCard>
     <h3>Import</h3>
@@ -53,27 +52,13 @@
                     new StreamContent(file.OpenReadStream(file.Size));
 
                 fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-
                 content.Add(
                     content: fileContent,
                     name: "\"files\"",
                     fileName: file.Name);
             }
-
-            var client = ClientFactory.CreateClient();
-            client.BaseAddress = new Uri(Navigation.BaseUri);
-            var response = await client.PostAsync($"{client.BaseAddress}api/ImportExport/Upload/{templateSelect}", content);
-
-            var messageResponse = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                NotifyService.Error(messageResponse);
-            }
-            else
-            {
-                NotifyService.Success(messageResponse);
-            }
+            
+            await ApiSerivce.PostFile(content, templateSelect);
 
             templateSelect = string.Empty;
             inputFileKey = Guid.NewGuid();

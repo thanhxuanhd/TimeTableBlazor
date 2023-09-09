@@ -44,6 +44,8 @@ How to run the project.
 
 2. Run command create database.
 
+Use Visual Studio or Visual Code
+
 ```Powershell
 update-database ## Create database
 ## OR
@@ -51,6 +53,8 @@ dotnet tool install --global dotnet-ef # If you misspelled a built-in dotnet com
 dotnet ef database update
 
 ## Start application
+## Visual Code
+cd TimeTable.Blazor
 dotnet run
 ```
 
