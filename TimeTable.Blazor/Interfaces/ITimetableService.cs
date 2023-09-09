@@ -4,5 +4,5 @@ namespace TimeTable.Blazor.Interfaces;
 
 public interface ITimetableService
 {
-    public List<Appointment> GetAppointments(DateTime startDate);
+    public Task<List<Appointment>> GetAppointments(DateTime startDate, DateTime endDate);
 }

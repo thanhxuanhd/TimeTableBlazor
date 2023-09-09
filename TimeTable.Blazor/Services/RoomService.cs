@@ -72,9 +72,15 @@ public class RoomService : IRoomService
 
             if (room is null)
             {
-                message = $"Room doesn't exist with Id: [{id}]";
-                errors.Add(message);
-                _logger.LogError(ErrorMessage, message);
+
+                AddError(errors, $"Room doesn't exist with Id: [{id}]");
+                success = false;
+                return Tuple.Create(success, errors);
+            }
+
+            if (!CanRemoveRoom(room.Id))
+            {
+                AddError(errors, $"Room with: [{room.Code}] in-used.");
                 success = false;
                 return Tuple.Create(success, errors);
             }
@@ -175,10 +181,8 @@ public class RoomService : IRoomService
 
             if (room is null)
             {
-                var message = $"The room doesn't exist with Id: [{room.Id}]";
                 success = false;
-                errors.Add(message);
-                _logger.LogError(ErrorMessage, message);
+                AddError(errors, $"The room doesn't exist with Id: [{room.Id}]");
                 return Tuple.Create(success, errors);
             }
             updateRoom.Location = room.Location?.Trim();
@@ -189,9 +193,7 @@ public class RoomService : IRoomService
         }
         catch (Exception ex)
         {
-            var message = ex.Message;
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, ex.Message);
+            AddError(errors, ex.Message);
             success = false;
         }
 
@@ -205,17 +207,14 @@ public class RoomService : IRoomService
         if (string.IsNullOrEmpty(room.Code))
         {
             valid = false;
-            var message = "Room Code is required.";
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, "Room Code is required.");
+
         }
 
         if (valid && room.Code?.Length > 20)
         {
             valid &= false;
-            var message = "Room Code greater than 20 characters.";
-            errors.Add(message);
-            _logger.LogError("Error: {message}", message);
+            AddError(errors, "Room Code greater than 20 characters.");
         }
 
         return valid;
@@ -239,15 +238,25 @@ public class RoomService : IRoomService
 
         if (isDuplicate)
         {
-            var message = $"Room is duplicate with Code [{roomCode}]";
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, $"Room is duplicate with Code [{roomCode}]");
         }
         return isDuplicate;
     }
 
     private Room GetRoom(Guid id)
     {
-        return _context.Rooms.FirstOrDefault(r => r.Id == id);
+        return _context.Rooms.Include(s => s.Subjects).FirstOrDefault(r => r.Id == id);
+    }
+
+    private bool CanRemoveRoom(Guid roomId)
+    {
+        var session = _context.Sessions.Include(s => s.Room).FirstOrDefault(s => s.RoomId == roomId);
+        return session is null;
+    }
+
+    private void AddError(List<string> errors, string message)
+    {
+        errors.Add(message);
+        _logger.LogError(ErrorMessage, message);
     }
 }

@@ -52,9 +52,7 @@ public class SubjectService : ISubjectService
         }
         catch (Exception ex)
         {
-            var message = ex.Message;
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, ex.Message);
         }
 
         return Tuple.Create(success, errors);
@@ -69,13 +67,19 @@ public class SubjectService : ISubjectService
         {
             var subject = GetSubject(id);
 
-            // TODO Validate Subject Used
-
             if (subject is null)
             {
-                var message = "Subject doesn't exist.";
-                errors.Add(message);
-                _logger.LogError(ErrorMessage, message);
+                AddError(errors, "Subject doesn't exist.");
+                success = false;
+
+                return Tuple.Create(success, errors);
+            }
+
+            if (!CanRemoveSubject(subject.Id))
+            {
+                AddError(errors, $"Subject [{subject.Code}] is used in Session.");
+                success = false;
+
                 return Tuple.Create(success, errors);
             }
 
@@ -84,9 +88,7 @@ public class SubjectService : ISubjectService
         }
         catch (Exception ex)
         {
-            var message = ex.Message;
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, ex.Message);
             success = false;
         }
 
@@ -180,9 +182,8 @@ public class SubjectService : ISubjectService
 
             if (subject is null)
             {
-                var message = "Subject doesn't exist.";
-                errors.Add(message);
-                _logger.LogError(ErrorMessage, message);
+                success = false;
+                AddError(errors, "Subject doesn't exist.");
                 return Tuple.Create(success, errors);
             }
 
@@ -196,9 +197,7 @@ public class SubjectService : ISubjectService
         }
         catch (Exception ex)
         {
-            var message = ex.Message;
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, ex.Message);
         }
 
         return Tuple.Create(success, errors);
@@ -207,38 +206,30 @@ public class SubjectService : ISubjectService
     private bool ValidateSubject(SubjectDto subject, List<string> errors)
     {
         var isValid = true;
-        string message;
 
         if (string.IsNullOrEmpty(subject.Code))
         {
             isValid = false;
-            message = "Subject Code is required.";
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, "Subject Code is required.");
         }
 
         if (string.IsNullOrEmpty(subject.Name))
         {
             isValid &= false;
-            message = "Subject Name is required.";
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, "Subject Name is required.");
         }
 
         if (isValid && subject.Code?.Length > 20)
         {
             isValid &= false;
-            message = "Subject Code greater than  greater than 20 characters.";
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, "Subject Code greater than  greater than 20 characters.");
         }
 
         if (isValid && !subject.TeacherId.HasValue)
         {
             isValid &= false;
-            message = "Subject Teacher is required";
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, "Subject Teacher is required");
+
         }
 
         return isValid;
@@ -258,11 +249,10 @@ public class SubjectService : ISubjectService
         }
 
         var isDuplicate = subject is not null;
+
         if (isDuplicate)
         {
-            var message = $"Subject is duplicate with [{code}]";
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, $"Subject is duplicate with [{code}]");
         }
 
         return isDuplicate;
@@ -271,5 +261,18 @@ public class SubjectService : ISubjectService
     private Subject GetSubject(Guid id)
     {
         return _context.Subjects.Include(s => s.Teacher).FirstOrDefault(s => s.Id == id);
+    }
+
+    private bool CanRemoveSubject(Guid subjectId)
+    {
+        var session = _context.Sessions.FirstOrDefault(s => s.SubjectId == subjectId);
+
+        return session is null;
+    }
+
+    private void AddError(List<string> errors, string message)
+    {
+        errors.Add(message);
+        _logger.LogError(ErrorMessage, message);
     }
 }

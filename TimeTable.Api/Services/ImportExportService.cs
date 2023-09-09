@@ -164,16 +164,18 @@ public class ImportExportService : IImportExportService
             Code = s.Code?.Trim(),
             Description = s.Description?.Trim(),
             Name = s.Name?.Trim(),
-            TeacherId = existingTeacher.FirstOrDefault(x => x.Code.Equals(s.TeacherCode, StringComparison.OrdinalIgnoreCase))?.Id ?? Guid.NewGuid()
+            TeacherId = existingTeacher.FirstOrDefault(x => x.Code.Equals(s.TeacherCode, StringComparison.OrdinalIgnoreCase))?.Id ?? Guid.Empty
         });
 
-        if (subjects.Any())
+        var subjectsImport = subjects.Where(s => s.TeacherId != Guid.Empty);
+
+        if (subjectsImport.Any())
         {
-            _context.AddRange(subjects);
+            _context.AddRange(subjectsImport);
             _context.SaveChanges();
         }
 
-        return subjects.Count();
+        return subjectsImport.Count();
     }
 
     private int ImportRoom(string fileData)

@@ -53,9 +53,8 @@ namespace TimeTable.Blazor.Services
             }
             catch (Exception ex)
             {
-                var message = ex.Message;
-                errors.Add(message);
-                _logger.LogError(ErrorMessage, message);
+                AddError(errors, ex.Message);
+                success = false;
             }
 
             return Tuple.Create(success, errors);
@@ -70,13 +69,17 @@ namespace TimeTable.Blazor.Services
             {
                 var teacher = GetTeacher(id);
 
-                // TODO Validate Teacher Used
-
                 if (teacher is null)
                 {
-                    var message = "Teacher doesn't exist.";
-                    errors.Add(message);
-                    _logger.LogError(ErrorMessage, message);
+                    AddError(errors, "Teacher doesn't exist.");
+                    success = false;
+                    return Tuple.Create(success, errors);
+                }
+
+                if (!CanRemoveTeacher(teacher.Id))
+                {
+                    AddError(errors, $"Teacher [{teacher.Code}] in used.");
+                    success = false;
                     return Tuple.Create(success, errors);
                 }
 
@@ -85,9 +88,7 @@ namespace TimeTable.Blazor.Services
             }
             catch (Exception ex)
             {
-                var message = ex.Message;
-                errors.Add(message);
-                _logger.LogError(ErrorMessage, message);
+                AddError(errors, ex.Message);
                 success = false;
             }
 
@@ -179,9 +180,8 @@ namespace TimeTable.Blazor.Services
 
                 if (teacher is null)
                 {
-                    var message = "Teacher doesn't exist.";
-                    errors.Add(message);
-                    _logger.LogError(ErrorMessage, message);
+                    AddError(errors, "Teacher doesn't exist.");
+                    success = false;
                     return Tuple.Create(success, errors);
                 }
 
@@ -195,9 +195,8 @@ namespace TimeTable.Blazor.Services
             }
             catch (Exception ex)
             {
-                var message = ex.Message;
-                errors.Add(message);
-                _logger.LogError(ErrorMessage, message);
+                success = false;
+                AddError(errors, ex.Message);
             }
 
             return Tuple.Create(success, errors);
@@ -206,30 +205,23 @@ namespace TimeTable.Blazor.Services
         public bool ValidateTeacher(TeacherDto teacher, List<string> errors)
         {
             var isValid = true;
-            string message;
 
             if (string.IsNullOrEmpty(teacher.Code))
             {
-                message = "Teacher Code is required.";
                 isValid = false;
-                errors.Add(message);
-                _logger.LogError(ErrorMessage, message);
+                AddError(errors, "Teacher Code is required.");
             }
 
             if (string.IsNullOrEmpty(teacher.FirstName))
             {
-                message = "Teacher First Name is required.";
                 isValid &= false;
-                errors.Add(message);
-                _logger.LogError(ErrorMessage, message);
+                AddError(errors, "Teacher First Name is required.");
             }
 
             if (isValid && teacher.Code?.Length > 20)
             {
-                message = "Teacher Code greater than  greater than 20 characters.";
                 isValid &= false;
-                errors.Add(message);
-                _logger.LogError(ErrorMessage, message);
+                AddError(errors, "Teacher Code greater than  greater than 20 characters.");
             }
 
             return isValid;
@@ -251,9 +243,7 @@ namespace TimeTable.Blazor.Services
             var isDuplicate = teacher is not null;
             if (isDuplicate)
             {
-                var message = $"Teacher is duplicate with [{code}]";
-                errors.Add(message);
-                _logger.LogError(ErrorMessage, message);
+                AddError(errors, $"Teacher is duplicate with [{code}]");
             }
 
             return isDuplicate;
@@ -262,6 +252,18 @@ namespace TimeTable.Blazor.Services
         private Teacher GetTeacher(Guid id)
         {
             return _context.Teachers.FirstOrDefault(t => t.Id == id);
+        }
+
+        private void AddError(List<string> errors, string message)
+        {
+            errors.Add(message);
+            _logger.LogError(ErrorMessage, message);
+        }
+
+        private bool CanRemoveTeacher(Guid teacherId)
+        {
+            var subject = _context.Subjects.FirstOrDefault(s => s.TeacherId == teacherId);
+            return subject is null;
         }
     }
 }

@@ -75,9 +75,8 @@ public class StudentService : IStudentService
 
             if (student is null)
             {
-                message = "Student doesn't exist.";
-                errors.Add(message);
-                _logger.LogError(ErrorMessage, message);
+                AddError(errors, $"Student doesn't exist.");
+
                 success = false;
             }
 
@@ -162,9 +161,7 @@ public class StudentService : IStudentService
 
             if (student is null)
             {
-                var message = $"The student doesn't exist with Id: [{studentDto.Id.Value}]";
-                errors.Add(message);
-                _logger.LogError(ErrorMessage, message);
+                AddError(errors, $"The student doesn't exist with Id: [{studentDto.Id.Value}]");
                 success = false;
                 return Tuple.Create(success, errors);
             }
@@ -180,7 +177,7 @@ public class StudentService : IStudentService
         catch (Exception ex)
         {
             success = false;
-            _logger.LogError("Errors: {message}", ex.Message);
+            AddError(errors, ex.Message);
         }
 
         return Tuple.Create(success, errors);
@@ -189,28 +186,24 @@ public class StudentService : IStudentService
     private bool ValidationStudent(StudentDto student, List<string> errors)
     {
         bool valid = true;
-        string message;
+
         if (string.IsNullOrWhiteSpace(student.FirstName))
         {
-            message = "First Name is required.";
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, "First Name is required.");
             valid = false;
         }
 
         if (string.IsNullOrWhiteSpace(student.Code))
         {
-            message = "Student Code is required.";
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, "Student Code is required.");
+
             valid &= false;
         }
 
         if (valid && student.Code?.Length > 20)
         {
-            message = "Student Code greater than  greater than 20 characters.";
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, "Student Code greater than  greater than 20 characters.");
+
             valid &= false;
         }
 
@@ -240,10 +233,15 @@ public class StudentService : IStudentService
 
         if (isDuplicate)
         {
-            var message = $"Student is duplicate with Code [{studentCode}]";
-            errors.Add(message);
-            _logger.LogError(ErrorMessage, message);
+            AddError(errors, $"Student is duplicate with Code [{studentCode}]");
         }
+
         return isDuplicate;
+    }
+
+    private void AddError(List<string> errors, string message)
+    {
+        errors.Add(message);
+        _logger.LogError(ErrorMessage, message);
     }
 }

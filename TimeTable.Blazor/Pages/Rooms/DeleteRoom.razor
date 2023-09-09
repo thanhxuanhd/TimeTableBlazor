@@ -5,6 +5,19 @@
 
 
 <div class="row">
+    <div class="error">
+        @if (Errors.Any())
+        {
+            <ul>
+                @foreach (var error in Errors.Where(e => !string.IsNullOrEmpty(e)))
+                {
+                    <li class="text-danger">
+                        @error
+                    </li>
+                }
+            </ul>
+        }
+    </div>
     <div class="col-12 mb-2">
         Are your want to delete the Room [@Code] ?
     </div>
@@ -20,28 +33,31 @@
     [Parameter]
     public string Code { get; set; }
 
+    public List<string> Errors { get; set; } = new List<string>();
+
     private void OnDelete()
     {
         try
         {
+            Errors = new List<string>();
             (bool success, List<string> errors) = RoomService.DeleteRoom(Id);
             if (success)
             {
                 NotifyService.Success("Deleted Room Success.");
+                DialogService.Close(true);
             }
             else
             {
                 NotifyService.Error("Delete Room Error.");
+                Errors = errors;
             }
-
         }
         catch (Exception ex)
         {
             NotifyService.Error("Delete Room Error.");
             Logger.LogError($"Error: {ex.Message}");
+            DialogService.Close(true);
         }
-
-        DialogService.Close(true);
     }
 
     private void OnCancel()

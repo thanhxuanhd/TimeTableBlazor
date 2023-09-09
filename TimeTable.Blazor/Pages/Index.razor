@@ -11,7 +11,7 @@
 <RadzenCard>
     <RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender style="height: 768px;" TItem="Appointment" Data=@appointments StartProperty="StartDate" EndProperty="EndDate"
                      TextProperty="Text" SelectedIndex="2"
-                     SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender>
+                     SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender LoadData="@OnLoadData">
         <RadzenDayView />
         <RadzenWeekView />
         <RadzenMonthView />
@@ -24,23 +24,12 @@
 @code {
     RadzenScheduler<Appointment> scheduler;
     IList<Appointment> appointments;
-    DateTime limitedRange;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
         appointments = new List<Appointment>();
-        limitedRange = DateTime.Now.AddDays(-40);
-        try
-        {
-            appointments = TimetableService.GetAppointments(limitedRange);
-
-        }
-        catch (Exception ex)
-        {
-            NotifyService.Error(ex.Message);
-        }
     }
 
     void OnSlotRender(SchedulerSlotRenderEventArgs args)
@@ -52,7 +41,7 @@
         }
 
         // Highlight working hours (9-18)
-        if ((args.View.Text == "Week" || args.View.Text == "Day") && args.Start.Hour > 8 && args.Start.Hour < 19)
+        if ((args.View.Text == "Week" || args.View.Text == "Day") && args.Start.Hour > 8 && args.Start.Hour < 18)
         {
             args.Attributes["style"] = "background: rgba(255,220,40,.2);";
         }
@@ -64,6 +53,10 @@
         {
             await DialogService.OpenAsync<AddAppointment>("Add Appointment",
                  new Dictionary<string, object> { { "Start", args.Start }, { "End", args.End } });
+
+            await scheduler.Reload();
+
+            await InvokeAsync(StateHasChanged);
 
         }
     }
@@ -80,5 +73,11 @@
     void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<Appointment> args)
     {
         // Never call StateHasChanged in AppointmentRender - would lead to infinite loop
+    }
+
+    async Task OnLoadData(SchedulerLoadDataEventArgs args)
+    {
+        // Get the appointments for between the Start and End
+        appointments = await TimetableService.GetAppointments(args.Start, args.End);
     }
 }

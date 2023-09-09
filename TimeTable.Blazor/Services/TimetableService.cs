@@ -14,13 +14,13 @@ public class TimetableService : ITimetableService
         _context = context;
     }
 
-    public List<Appointment> GetAppointments(DateTime startDate)
+    public async Task<List<Appointment>> GetAppointments(DateTime startDate, DateTime endDate)
     {
         var appointments = _context.Timeslots.Include(t => t.Session)
             .Include(t => t.Session.Room)
             .Include(t => t.Session.Subject)
             .Include(t => t.Session.Subject.Teacher)
-            .Where(t => t.StartTime > startDate)
+            .Where(t => t.StartTime <= endDate && t.EndTime >= startDate)
             .OrderBy(t => t.StartTime)
             .Select(t => new Appointment()
             {
@@ -37,6 +37,6 @@ public class TimetableService : ITimetableService
                 Id = t.Session.Id,
             });
 
-        return appointments.ToList();
+        return await appointments.ToListAsync();
     }
 }
