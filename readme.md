@@ -54,6 +54,12 @@ dotnet ef database update
 
 ## Start application
 ## Visual Code
+## Create new terminal for api
+cd TimeTable.Api
+dotnet run
+
+## Create new terminal for web app
+## Update appsettings.json ApiUrl - with value Api Adress.
 cd TimeTable.Blazor
 dotnet run
 ```
