@@ -1,27 +1,27 @@
-﻿namespace TimeTable.Blazor.Models;
+﻿using System.ComponentModel.DataAnnotations;
 
-public class TeacherDto
+namespace TimeTable.Domain.Dtos;
+
+public class StudentDto
 {
     public Guid? Id { get; set; }
 
     public string Code { get; set; }
-
     public string FirstName { get; set; }
 
     public string LastName { get; set; }
 
+    [EmailAddress]
     public string Email { get; set; }
-
-    public string DisplayInfo => $"{Code} - {FirstName} {LastName}";
 }
 
-public class TeacherImportDto
+public class StudentImportDto
 {
     public string Code { get; set; }
-
     public string FirstName { get; set; }
 
     public string LastName { get; set; }
 
+    [EmailAddress]
     public string Email { get; set; }
 }

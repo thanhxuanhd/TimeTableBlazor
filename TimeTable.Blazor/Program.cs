@@ -1,8 +1,8 @@
 using Radzen;
 using TimeTable.Blazor.Interfaces;
-using TimeTable.Blazor.Models;
 using TimeTable.Blazor.Services;
 using TimeTable.Domain;
+using TimeTable.Domain.Dtos;
 
 namespace TimeTable.Blazor
 {
@@ -37,7 +37,10 @@ namespace TimeTable.Blazor
 
             builder.Services.Configure<List<ImportTemplate>>(builder.Configuration.GetSection("ImportTemplates"));
 
-            builder.Services.AddHttpClient<IApiService, ApiService>((s, h) => { }).ConfigurePrimaryHttpMessageHandler(() =>
+            builder.Services.AddHttpClient<IApiService, ApiService>((s, h) =>
+            {
+                h.BaseAddress = new Uri(builder.Configuration["ApiUrl"]);
+            }).ConfigurePrimaryHttpMessageHandler(() =>
             {
                 return new HttpClientHandler()
                 {

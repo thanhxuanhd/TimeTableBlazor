@@ -1,4 +1,4 @@
-﻿namespace TimeTable.Blazor.Models;
+﻿namespace TimeTable.Domain.Dtos;
 
 public class SubjectDto
 {

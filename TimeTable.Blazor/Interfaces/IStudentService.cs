@@ -1,5 +1,5 @@
 ﻿using Radzen;
-using TimeTable.Blazor.Models;
+using TimeTable.Domain.Dtos;
 
 namespace TimeTable.Blazor.Interfaces;
 

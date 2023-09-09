@@ -1,4 +1,4 @@
-﻿namespace TimeTable.Blazor.Models;
+﻿namespace TimeTable.Domain.Dtos;
 
 public class RoomDto
 {
@@ -13,9 +13,7 @@ public class RoomDto
 
 public class RoomImportDto
 {
-
     public string Code { get; set; }
 
     public string Location { get; set; }
 }
-

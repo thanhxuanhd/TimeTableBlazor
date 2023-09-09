@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TimeTable.Blazor.Interfaces;
+using TimeTable.Api.Interfaces;
 
 namespace TimeTable.Blazor.Controllers
 {

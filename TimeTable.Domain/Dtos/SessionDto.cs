@@ -1,4 +1,4 @@
-﻿namespace TimeTable.Blazor.Models;
+﻿namespace TimeTable.Domain.Dtos;
 
 public class SessionDto
 {
@@ -20,5 +20,4 @@ public class SessionImportDto
     public Guid RoomId { get; set; }
 
     public Guid SubjectId { get; set; }
-
 }

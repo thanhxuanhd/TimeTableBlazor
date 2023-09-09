@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeTable.Domain", "TimeTab
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeTable.Blazor", "TimeTable.Blazor\TimeTable.Blazor.csproj", "{88546A19-A939-4B04-8FDF-D9DBB484A821}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeTable.Api", "TimeTable.Api\TimeTable.Api.csproj", "{7C3DB434-D7D3-42B9-ACE0-DC41A63CCFE8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{88546A19-A939-4B04-8FDF-D9DBB484A821}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{88546A19-A939-4B04-8FDF-D9DBB484A821}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88546A19-A939-4B04-8FDF-D9DBB484A821}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C3DB434-D7D3-42B9-ACE0-DC41A63CCFE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C3DB434-D7D3-42B9-ACE0-DC41A63CCFE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C3DB434-D7D3-42B9-ACE0-DC41A63CCFE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C3DB434-D7D3-42B9-ACE0-DC41A63CCFE8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

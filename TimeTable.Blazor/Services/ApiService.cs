@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components;
 using TimeTable.Blazor.Interfaces;
 
 namespace TimeTable.Blazor.Services;
@@ -10,13 +9,13 @@ public class ApiService : IApiService
 
     private readonly ILogger<ApiService> _logger;
 
-    public ApiService(NavigationManager navigationManager, HttpClient client, INotificationService notificationService, ILogger<ApiService> logger)
+    public ApiService(HttpClient client, INotificationService notificationService, ILogger<ApiService> logger)
     {
         _client = client;
-        _client.BaseAddress = new Uri(navigationManager.BaseUri);
         _notificationService = notificationService;
         _logger = logger;
     }
+
     public async Task<bool> PostFile(MultipartFormDataContent content, string templateSelect)
     {
         var success = true;

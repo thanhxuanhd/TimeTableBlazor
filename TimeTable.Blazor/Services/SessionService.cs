@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TimeTable.Blazor.Interfaces;
-using TimeTable.Blazor.Models;
 using TimeTable.Domain;
+using TimeTable.Domain.Dtos;
 
 namespace TimeTable.Blazor.Services;
 
