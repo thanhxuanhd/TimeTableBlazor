@@ -1,6 +1,74 @@
 ﻿@page "/Export"
-<h3>Export</h3>
+
+@inject IApiService ApiService
+@inject INotificationService NotificationService
+@inject IJSRuntime JS
+
+<RadzenCard class="w-50 m-auto">
+    <h3>Export</h3>
+
+    <RadzenTemplateForm TItem="ExportAppointmentDto" Data="@Model" Submit=@(async() => await OnSubmit())>
+        <div class="row">
+            <div class="col-12 mb-2">
+                <RadzenLabel Text="Start Date" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenDatePicker @bind-Value=@Model.StartDate class="w-100" Name="StartDate" DateFormat="dd/MM/yyyy" />
+                <RadzenRequiredValidator Component="StartDate" Text="Start Date is required" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenLabel Text="End Date" />
+            </div>
+
+            <div class="col-12 mb-2">
+                <RadzenDatePicker @bind-Value=@Model.EndDate class="w-100" Name="EndDate" DateFormat="dd/MM/yyyy" />
+                <RadzenRequiredValidator Component="EndDate" Text="End Date is required" />
+            </div>
+
+            <div class="mb-2">
+                <RadzenButton Variant="Variant.Flat" ButtonType="ButtonType.Submit" Text="Export" ButtonStyle="ButtonStyle.Primary" />
+            </div>
+        </div>
+    </RadzenTemplateForm>
+</RadzenCard>
 
 @code {
+    ExportAppointmentDto Model;
 
+    protected override void OnInitialized()
+    {
+        Model = new ExportAppointmentDto();
+        base.OnInitialized();
+    }
+
+    private async Task OnSubmit()
+    {
+
+        var valid = true;
+
+        if (!Model.StartDate.HasValue || !Model.EndDate.HasValue)
+        {
+            NotificationService.Error($"Start Date or End Date is required.");
+            valid = false;
+        }
+
+        if (Model.StartDate > Model.EndDate)
+        {
+            NotificationService.Error($"The Start Date {Model.StartDate.Value:dd/MM/yyyy} greater than End Date {Model.EndDate.Value:dd/MM/yyyy}.");
+            valid = false;
+        }
+
+        if (valid)
+        {
+            var fileStream = await ApiService.GetFile(Model);
+
+            var fileName = "scheduler.csv";
+
+            using var streamRef = new DotNetStreamReference(stream: new MemoryStream(fileStream));
+
+            await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+        }
+    }
 }

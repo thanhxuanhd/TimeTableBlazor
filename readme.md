@@ -35,7 +35,7 @@ Note feature:
   - Subject
   - Timetable
 
-- Export timetable to CSV (TBC)
+- Export timetable to CSV (Done)
 - Application Unit Test
 
 How to run the project.

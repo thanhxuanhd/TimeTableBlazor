@@ -8,10 +8,12 @@ namespace TimeTable.Blazor.Controllers
     public class ImportExportController : ControllerBase
     {
         private readonly IImportExportService _importExportService;
+        private readonly ILogger<ImportExportController> _logger;
 
-        public ImportExportController(IImportExportService importExportService)
+        public ImportExportController(IImportExportService importExportService, ILogger<ImportExportController> logger)
         {
             _importExportService = importExportService;
+            _logger = logger;
         }
 
         [HttpPost("Upload/{templateId}")]
@@ -44,6 +46,22 @@ namespace TimeTable.Blazor.Controllers
             {
                 return BadRequest($"ERROR: {ex.Message}");
             }
+        }
+
+        [HttpGet("ExportFile")]
+        public IActionResult Export(DateTime? startDate, DateTime? endDate)
+        {
+            var file = Array.Empty<byte>();
+            try
+            {
+                file = _importExportService.ExportData(startDate, endDate);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error: {message}", ex.Message);
+            }
+
+            return File(file, "text/csv");
         }
     }
 }

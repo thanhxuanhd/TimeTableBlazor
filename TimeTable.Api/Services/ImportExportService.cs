@@ -337,4 +337,62 @@ public class ImportExportService : IImportExportService
 
         return datas;
     }
+
+    public byte[] ExportData(DateTime? startDate, DateTime? endDate)
+    {
+        if (!startDate.HasValue && !endDate.HasValue)
+        {
+            return Array.Empty<byte>();
+        }
+
+        var file = Array.Empty<byte>();
+
+        var appointments = _context.Timeslots
+            .Include(t => t.Session)
+            .Include(t => t.Session.Room)
+            .Include(t => t.Session.Subject)
+            .Include(t => t.Session.Subject.Teacher)
+            .Where(t => t.StartTime <= endDate && t.EndTime >= startDate)
+            .OrderBy(t => t.StartTime)
+            .Select(t => new AppointmentMap()
+            {
+                StartDate = t.StartTime,
+                EndDate = t.EndTime,
+                Location = t.Session.Room.Location,
+                RoomCode = t.Session.Room.Code,
+                SessionName = t.Session.Name,
+                SubjectName = t.Session.Subject.Name,
+                TeacherName = t.Session.Subject.Teacher.GetFullName(),
+            }).ToList();
+
+        using (var memoryStream = new MemoryStream())
+        {
+            using (var writer = new StreamWriter(memoryStream))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.WriteHeader<AppointmentMap>();
+                csv.NextRecord();
+                foreach (var appointment in appointments)
+                {
+                    csv.WriteRecord(appointment);
+                    csv.NextRecord();
+                }
+            }
+
+            file = memoryStream.ToArray();
+        }
+
+        return file;
+    }
+}
+
+public class AppointmentMap
+{
+    public string SubjectName { get; set; }
+    public string SessionName { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public string TeacherName { get; set; }
+    public string RoomCode { get; set; }
+    public string Location { get; set; }
 }
